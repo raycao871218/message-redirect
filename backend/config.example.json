@@ -1,0 +1,11 @@
+{
+  "database": {
+    "host": "host.docker.internal",
+    "port": 5432,
+    "dbname": "sms_archive",
+    "user": "sms_ingest",
+    "password": ""
+  },
+  "api_token": "",
+  "port": 18081
+}
