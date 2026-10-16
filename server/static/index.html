@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer"><title>咕咕咕 · 服务小窝</title>
+  <link rel="icon" href="/static/dove.png"><link rel="stylesheet" href="/static/panel.css">
+  <script src="/static/panel.js" defer></script>
+</head>
+<body>
+<main class="shell">
+  <header class="masthead">
+    <a class="brand" href="/" aria-label="咕咕咕首页"><img id="brand-dove" src="/static/dove-cyber.png" alt="守着服务小窝的珠颈斑鸠" hidden><span><strong>咕咕咕</strong><small>给消息安个小窝</small></span></a>
+    <nav aria-label="主导航"><a href="/docs" target="_blank" rel="noopener">API 文档 ↗</a><button id="logout" class="quiet" hidden>退出登录</button></nav>
+  </header>
+  <section id="login-view" class="login-layout">
+    <div class="welcome"><span class="eyebrow">你的服务，你来做主</span><h1>咕，欢迎回窝。</h1><p>把短信好好收着，<br>其余的交给这只小斑鸠。</p><img class="welcome-dove" src="/static/dove.png" alt="挥着小翅膀的咕咕咕"></div>
+    <section class="paper login-paper" aria-labelledby="login-title"><span class="tag">服务管理</span><h2 id="login-title">先对一下暗号</h2><p class="muted">用部署时设置的管理密码登录。</p>
+      <form id="login-form"><label for="admin-password">管理密码</label><input id="admin-password" type="password" autocomplete="current-password" required maxlength="1024"><button class="primary wide" type="submit">开门，咕咕！</button></form>
+      <div id="setup-hint" class="callout" hidden>尚未启用管理面板。请在 Docker 中设置至少 12 位的 <code>SMS_ADMIN_PASSWORD</code>，或用 <code>SMS_ADMIN_PASSWORD_FILE</code> 挂载密码文件，并为 <code>/data</code> 挂载持久化卷后重启。</div>
+      <p class="footnote">管理密码与 App 的访问密钥各管各的。短信接入文档可以直接查看。</p>
+    </section>
+  </section>
+  <section id="dashboard" hidden>
+    <div class="page-heading"><div><span class="eyebrow">服务小窝</span><h1>消息的落脚处</h1></div><span id="health-badge" class="badge">正在检查连接</span></div>
+    <div class="dashboard-grid">
+      <section class="paper database-paper" aria-labelledby="db-title"><div class="section-title"><span class="number">01</span><div><h2 id="db-title">短信存到哪里</h2><p class="muted">切换连接只影响后续写入，不会搬走旧短信。</p></div></div>
+        <form id="database-form">
+          <label for="db-type">数据库类型</label><select id="db-type"><option value="sqlite">SQLite · 一个容器就够了</option><option value="postgresql">PostgreSQL</option><option value="mysql">MySQL</option><option value="mariadb">MariaDB</option></select>
+          <div id="sqlite-fields"><label for="db-path">数据库文件路径</label><input id="db-path" value="/data/messages.sqlite3" maxlength="1024"><p class="footnote">文件所在目录需要挂载数据卷，重建容器才不会丢失短信。</p></div>
+          <div id="remote-fields" hidden>
+            <div class="field-row"><div><label for="db-host">数据库主机</label><input id="db-host" placeholder="例如 database 或数据库地址" maxlength="253" autocomplete="off"></div><div class="port-field"><label for="db-port">端口</label><input id="db-port" type="number" min="1" max="65535" value="5432"></div></div>
+            <div class="field-row"><div><label for="db-name">数据库名</label><input id="db-name" maxlength="128" autocomplete="off"></div><div><label for="db-user">数据库账号</label><input id="db-user" maxlength="128" autocomplete="off"></div></div>
+            <label for="db-password">数据库密码</label><input id="db-password" type="password" maxlength="4096" autocomplete="new-password" placeholder="输入数据库密码"><p id="password-hint" class="footnote">数据库需事先创建，账号需要建表和读写权限。</p>
+            <div id="postgres-tls"><label for="db-sslmode">PostgreSQL SSL 模式</label><select id="db-sslmode"><option value="prefer">prefer · 优先加密</option><option value="require">require · 要求加密</option><option value="verify-ca">verify-ca · 校验证书</option><option value="verify-full">verify-full · 校验证书和主机名</option><option value="disable">disable · 关闭</option><option value="allow">allow · 允许加密</option></select></div>
+          </div>
+          <div class="actions"><button id="test-database" type="button">测试连接</button><button class="primary" type="submit">保存连接</button></div>
+        </form>
+      </section>
+      <div class="side-stack">
+        <section class="paper" aria-labelledby="pair-title"><div class="section-title"><span class="number peach">02</span><div><h2 id="pair-title">让手机找到小窝</h2><p class="muted">App 的数据库设置里点「扫码配置」。</p></div></div>
+          <form id="public-url-form"><label for="public-url">手机可访问的服务地址</label><input id="public-url" type="url" placeholder="https://sms.example.com" maxlength="2048" required><button type="submit" class="wide">保存地址，生成配对码</button></form>
+          <div class="qr-well"><img id="pairing-qr" alt="App 服务配置二维码，含访问密钥" hidden><div id="qr-placeholder"><p>填好地址，即可生成配对码。</p></div></div>
+          <p class="footnote">二维码含访问密钥，只给自己的手机扫码。公开版 App 使用 HTTPS；本机测试地址除外。</p>
+        </section>
+        <section class="paper" aria-labelledby="token-title"><div class="section-title"><span class="number lavender">03</span><div><h2 id="token-title">短信访问密钥</h2><p class="muted">供 App 和你自己开发的客户端使用。</p></div></div>
+          <label class="sr-only" for="api-token">短信访问密钥</label><div class="token-row"><input id="api-token" type="password" readonly autocomplete="off"><button id="show-token" type="button" aria-pressed="false">显示</button></div>
+          <div class="actions"><button id="copy-token" type="button">复制密钥</button><button id="reset-token" class="danger" type="button">重置密钥</button></div>
+        </section>
+        <section class="paper" aria-labelledby="password-title"><div class="section-title"><span class="number peach">04</span><div><h2 id="password-title">登录密码</h2><p class="muted">管理面板的登录密码，修改后 App 连接保持正常。</p></div></div>
+          <button id="change-password" type="button" class="wide">修改登录密码</button>
+        </section>
+      </div>
+    </div>
+    <footer>咕咕咕 <span id="service-version"></span> · 独立接收，安心归档。<a href="/docs" target="_blank" rel="noopener">自己接 API ↗</a></footer>
+  </section>
+  <p id="notice" role="status" aria-live="polite" hidden></p>
+</main>
+<dialog id="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title"></h2><p id="confirm-message"></p><div class="actions"><button id="confirm-cancel">先不改</button><button id="confirm-ok" class="primary">确认</button></div></dialog>
+<dialog id="password-dialog" aria-labelledby="password-dialog-title"><h2 id="password-dialog-title">修改登录密码</h2><p>保存后会退出所有已登录的浏览器，请用新密码重新登录。</p>
+  <form id="password-form">
+    <label for="current-password">当前密码</label><input id="current-password" type="password" autocomplete="current-password" required maxlength="1024">
+    <label for="new-password">新密码</label><input id="new-password" type="password" autocomplete="new-password" required minlength="12" maxlength="1024" aria-describedby="new-password-hint"><p class="footnote" id="new-password-hint">至少 12 个字符，建议组合使用字母、数字和符号。</p>
+    <label for="confirm-password">再次输入新密码</label><input id="confirm-password" type="password" autocomplete="new-password" required minlength="12" maxlength="1024">
+    <p id="password-error" class="form-error" role="alert" hidden></p>
+    <div class="actions"><button id="password-cancel" type="button">先不改</button><button id="password-save" class="primary" type="submit">保存并重新登录</button></div>
+  </form>
+</dialog>
+</body>
+</html>

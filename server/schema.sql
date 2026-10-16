@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS message_redirect.sms_messages (
     source text NOT NULL,
     received_at timestamptz NOT NULL DEFAULT now(),
     payload_hash text NOT NULL,
+    read_at timestamptz NULL,
     PRIMARY KEY (device_id, message_id)
 );
 CREATE INDEX IF NOT EXISTS sms_messages_sent_at_idx ON message_redirect.sms_messages (sent_at DESC);

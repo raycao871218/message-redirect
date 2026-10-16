@@ -8,6 +8,7 @@ public final class SmsInstrumentation extends Instrumentation {
     private Bundle arguments;
     @Override public void onCreate(Bundle args) { arguments = args; start(); }
     @Override public void onStart() {
+        if (arguments != null && "true".equals(arguments.getString("pairing_flow"))) { testPairingFlow(); return; }
         if (arguments != null && "true".equals(arguments.getString("dialog_flow"))) { testDialogs(); return; }
         if (arguments != null && "true".equals(arguments.getString("render_ui"))) { renderPreview(); return; }
         if (arguments != null && "true".equals(arguments.getString("ui_flow"))) { testSetupFlow(); return; }
@@ -510,6 +511,59 @@ public final class SmsInstrumentation extends Instrumentation {
         renderView(app, root, database ? "about-database.png" : "about-email.png");
         if (database) app.onBackPressed(); else view(root, "返回首页", false).performClick();
         check(view(root, "转发状态", false) != null && before.equals(config.prefs.getAll()), "About returns home without changing configuration");
+    }
+    private void testPairingFlow() {
+        Bundle result = new Bundle(); android.app.Activity activity = null;
+        try {
+            check(getTargetContext().getPackageName().endsWith(".preview"), "pairing requires isolated preview app");
+            SyncConfig config = new SyncConfig(getTargetContext());
+            check(config.setupComplete() && !config.enabled(), "pairing fixtures must be paused");
+            java.io.File fixtures = getTargetContext().getExternalFilesDir(null);
+            org.json.JSONObject expected;
+            try (java.io.InputStream input = new java.io.FileInputStream(new java.io.File(fixtures, "pairing-expected.json"))) {
+                java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream(); byte[] buffer = new byte[1024]; int n;
+                while ((n = input.read(buffer)) != -1) bytes.write(buffer, 0, n);
+                expected = new org.json.JSONObject(bytes.toString("UTF-8"));
+            }
+            android.graphics.Bitmap image = android.graphics.BitmapFactory.decodeFile(new java.io.File(fixtures, "pairing-fixture.jpg").getAbsolutePath());
+            check(image != null, "browser-rendered QR fixture available");
+            int width = image.getWidth(), height = image.getHeight(); int[] pixels = new int[width * height]; image.getPixels(pixels, 0, width, 0, 0, width, height); image.recycle();
+            java.util.Map<com.google.zxing.DecodeHintType, Object> hints = new java.util.EnumMap<>(com.google.zxing.DecodeHintType.class);
+            hints.put(com.google.zxing.DecodeHintType.TRY_HARDER, true); hints.put(com.google.zxing.DecodeHintType.CHARACTER_SET, "UTF-8");
+            String raw = new com.google.zxing.qrcode.QRCodeReader().decode(new com.google.zxing.BinaryBitmap(new com.google.zxing.common.HybridBinarizer(new com.google.zxing.RGBLuminanceSource(width, height, pixels))), hints).getText();
+            PairingConfig pairing = PairingConfig.parse(raw);
+            check(pairing.url.equals(expected.getString("url")) && pairing.token.equals(expected.getString("api_token")), "real browser QR decodes to current backend URL and rotated key");
+            for (String invalid : new String[]{"https://example.invalid", "{\"type\":\"other\"}", raw.replace("\"version\":1", "\"version\":2"), raw.replace("https://", "javascript://"), raw.replace(pairing.token, "short")}) {
+                boolean rejected = false; try { PairingConfig.parse(invalid); } catch (IllegalArgumentException error) { rejected = true; }
+                check(rejected, "malformed, unknown and unsafe QR contents rejected");
+            }
+            final String contents = raw;
+            activity = startActivitySync(new android.content.Intent().setClassName(getTargetContext().getPackageName(), MainActivity.class.getName()).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            waitForIdleSync(); final MainActivity app = (MainActivity) activity;
+            runOnMainSync(() -> {
+                android.view.View root = app.getWindow().getDecorView();
+                view(root, "管理转发配置", false).performClick(); view(root, "＋ 新增配置", false).performClick(); view(root, "自建数据库", false).performClick();
+                check(view(root, "扫码配置", false) != null, "database editor has an explicit scan entry");
+                java.util.Map<String, ?> before = new java.util.HashMap<>(config.prefs.getAll());
+                String active = new ProfileStore(config).activeId();
+                app.onActivityResult(41, android.app.Activity.RESULT_OK, new android.content.Intent().putExtra("pairing", contents));
+                CrayonDialog preview = currentDialog(app); captureDialog(app, preview, "pairing-confirm.png");
+                check(view(preview.getWindow().getDecorView(), "连接这个小窝？", false) != null, "scan shows confirmation first");
+                view(preview.getWindow().getDecorView(), "取消", false).performClick();
+                check(before.equals(config.prefs.getAll()) && ((android.widget.EditText) view(root, "转存服务地址", true)).getText().length() == 0, "cancel does not change draft or saved settings");
+                app.onActivityResult(41, android.app.Activity.RESULT_OK, new android.content.Intent().putExtra("pairing", contents));
+                view(currentDialog(app).getWindow().getDecorView(), "填入配置", false).performClick();
+                check(pairing.url.equals(((android.widget.EditText) view(root, "转存服务地址", true)).getText().toString()), "confirmation fills service URL");
+                check(pairing.token.equals(((android.widget.EditText) view(root, "服务访问令牌", true)).getText().toString()), "confirmation fills current key");
+                check(before.equals(config.prefs.getAll()), "scan confirmation does not save or switch active route");
+                renderView(app, root, "pairing-filled-editor.png");
+                view(root, "保存配置", false).performClick();
+                ProfileStore profiles = new ProfileStore(config);
+                check(view(root, "选择配置：咕咕咕服务", true) != null && active.equals(profiles.activeId()) && !config.enabled(), "explicit save creates card and preserves active route and paused state");
+            });
+            result.putString("stream", "PASS: browser-generated QR decoded on Android, current rotated key matches, invalid data rejected, cancel preserved settings, confirm fills draft only, explicit save preserves active route"); finish(-1, result);
+        } catch (Throwable error) { result.putString("stream", "FAIL: " + error); finish(0, result); }
+        finally { if (activity != null) { final android.app.Activity app = activity; runOnMainSync(app::finish); } }
     }
     private boolean hasInput(android.view.View root) {
         if (root instanceof android.widget.EditText) return true;

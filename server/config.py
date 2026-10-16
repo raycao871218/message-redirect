@@ -59,4 +59,8 @@ def load_config(env=None, fallback_paths=None):
             raise ValueError()
     except (TypeError, ValueError):
         raise ValueError("Invalid HTTP port") from None
-    return {"database": database, "api_token": _secret(env, "SMS_API_TOKEN", config.get("api_token", "")), "port": port}
+    admin_password = _secret(env, "SMS_ADMIN_PASSWORD")
+    management = {"password": admin_password, "state_dir": env.get("SMS_STATE_DIR", "/data"),
+                  "public_url": env.get("SMS_PUBLIC_URL", "")}
+    return {"database": database, "api_token": _secret(env, "SMS_API_TOKEN", config.get("api_token", "")),
+            "port": port, "management": management}

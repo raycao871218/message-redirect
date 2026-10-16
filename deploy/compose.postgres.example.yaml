@@ -7,6 +7,9 @@ services:
     ports:
       - "${SMS_BIND_ADDRESS:-127.0.0.1}:${SMS_HTTP_PORT:-18081}:18081"
     environment:
+      SMS_ADMIN_PASSWORD_FILE: /run/secrets/admin-password
+      SMS_STATE_DIR: /data
+      SMS_PUBLIC_URL: ${SMS_PUBLIC_URL:-}
       SMS_DB_TYPE: postgresql
       SMS_DB_HOST: database
       SMS_DB_PORT: "5432"
@@ -14,10 +17,11 @@ services:
       SMS_DB_USER: ${SMS_DB_USER:-sms_ingest}
       SMS_DB_PASSWORD_FILE: /run/secrets/db-password
       SMS_API_TOKEN_FILE: /run/secrets/api-token
-    secrets: [api-token, db-password]
+    secrets: [admin-password, api-token, db-password]
     depends_on:
       database:
         condition: service_healthy
+    volumes: [sms-state:/data]
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
@@ -38,9 +42,12 @@ services:
       timeout: 5s
       retries: 20
 secrets:
+  admin-password:
+    file: ./.secrets/admin-password
   api-token:
     file: ./.secrets/api-token
   db-password:
     file: ./.secrets/db-password
 volumes:
+  sms-state:
   postgres-data:

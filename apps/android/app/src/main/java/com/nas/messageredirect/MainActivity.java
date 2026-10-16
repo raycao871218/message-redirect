@@ -288,10 +288,26 @@ public final class MainActivity extends Activity {
     private void databaseStep() {
         LinearLayout panel = card(root);
         label(panel, "连接配套服务", 17, INK).setTypeface(null, Typeface.BOLD);
-        label(panel, "先在自己的服务器部署配套服务，再填写下方信息。", 13, MUTED);
+        label(panel, "先部署配套服务，再扫码或手动填写连接信息。", 13, MUTED);
+        button(panel, "扫码配置", false, view -> { rememberInputs(); startActivityForResult(new Intent(this, PairingScannerActivity.class), 41); });
         urlInput = field(panel, "转存服务地址", url, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI, "https://sms.example.com");
         tokenInput = field(panel, "服务访问令牌", token, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD, "与服务端 api_token 一致，至少 32 位");
         label(panel, "数据库账号和密码只填在服务端。", 13, MUTED);
+    }
+    @Override protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != 41 || result != RESULT_OK || data == null) return;
+        if ((!wizard && !editing) || phoneEditing || !SyncConfig.DATABASE.equals(mode)) return;
+        try {
+            PairingConfig pairing = PairingConfig.parse(data.getStringExtra("pairing"));
+            dialog().setTitle("连接这个小窝？")
+                .setMessage(pairing.name + "\n" + pairing.url + "\n\n确认后只填入设置页面，保存配置后才会生效。访问密钥已包含在配对码中。")
+                .setPositiveButton("填入配置", (dialog, which) -> {
+                    url = pairing.url; token = pairing.token; urlInput.setText(url); tokenInput.setText(token);
+                    if (editing && profileId.isEmpty() && value(profileNameInput).isEmpty()) { profileName = pairing.name; profileNameInput.setText(profileName); }
+                    say("已填入服务地址和密钥，请核对后保存配置");
+                }).setNegativeButton("取消", null).show();
+        } catch (IllegalArgumentException error) { say(error.getMessage()); }
     }
     private SmtpProfile draftSmtp() {
         int number; try { number = Integer.parseInt(port); } catch (NumberFormatException error) { throw new IllegalArgumentException("SMTP 端口需为 1–65535"); }

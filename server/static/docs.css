@@ -1,0 +1,76 @@
+/* Keep the panel's global form, button and heading rules out of Swagger UI. */
+.api-docs {
+  margin: 0;
+  color: #3b3a49;
+  font-family: ui-rounded, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  background-color: #fcf6e8;
+  background-image: radial-gradient(#8478640b .8px, transparent .8px),
+    radial-gradient(#84786408 .7px, transparent .7px);
+  background-size: 7px 9px, 11px 13px;
+}
+
+.docs-banner {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  border-bottom: 1px solid #c3bdb2;
+}
+.docs-banner img { width: 54px; height: 54px; object-fit: contain; flex-shrink: 0; }
+.docs-banner strong { font-size: 20px; }
+.docs-banner a { margin-left: auto; color: #4d669d; text-underline-offset: 5px; white-space: nowrap; }
+.docs-banner a:focus-visible { outline: 3px solid #657da9; outline-offset: 4px; }
+
+#swagger-ui { box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 0 28px 40px; }
+/* One shared content gutter, including Swagger's nested authentication wrapper. */
+.api-docs .swagger-ui .wrapper { width: 100%; max-width: none; margin: 0; padding: 0; }
+.api-docs .swagger-ui .topbar { display: none; }
+.api-docs .swagger-ui .info { margin: 30px 0 24px; }
+.api-docs .swagger-ui .info .title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.4;
+}
+.api-docs .swagger-ui .info .title small { top: 0; margin: 0; }
+.api-docs .swagger-ui .info p { line-height: 1.8; overflow-wrap: anywhere; }
+.api-docs .swagger-ui .scheme-container {
+  margin: 0 0 24px;
+  padding: 16px 0;
+  background: transparent;
+  border-top: 1px solid #c3bdb2;
+  border-bottom: 1px solid #c3bdb2;
+  box-shadow: none;
+}
+.api-docs .swagger-ui .btn.authorize { color: #4d669d; border-color: #7184ad; background: #fffcf4; }
+.api-docs .swagger-ui .btn.authorize svg { fill: #4d669d; }
+.api-docs .swagger-ui .opblock { border-radius: 10px; }
+.api-docs .swagger-ui .opblock-summary-control { min-width: 0; }
+.api-docs .swagger-ui .opblock .opblock-summary-path { min-width: 0; overflow-wrap: anywhere; }
+.api-docs .swagger-ui .opblock .opblock-summary-description { min-width: 0; line-height: 1.5; }
+.api-docs .swagger-ui .opblock-body { min-width: 0; }
+.api-docs .swagger-ui .responses-inner { overflow-x: auto; }
+.api-docs .swagger-ui .highlight-code { max-width: 100%; }
+.api-docs .swagger-ui .dialog-ux .modal-ux { max-width: min(650px, calc(100vw - 32px)); }
+
+@media (max-width: 580px) {
+  .docs-banner { gap: 10px; padding: 12px 16px; flex-wrap: wrap; }
+  .docs-banner img { width: 42px; height: 42px; }
+  .docs-banner strong { font-size: 16px; }
+  .docs-banner a { font-size: 13px; }
+  #swagger-ui { padding: 0 16px 28px; }
+  .api-docs .swagger-ui .info { margin-top: 24px; }
+  .api-docs .swagger-ui .opblock .opblock-summary { align-items: flex-start; }
+  .api-docs .swagger-ui .opblock-summary-control { flex-wrap: wrap; gap: 6px; }
+  .api-docs .swagger-ui .opblock .opblock-summary-method { margin: 0; }
+  .api-docs .swagger-ui .opblock .opblock-summary-path { max-width: 100%; font-size: 14px; }
+  .api-docs .swagger-ui .opblock .opblock-summary-description { flex-basis: 100%; padding: 0; font-size: 12px; }
+  .api-docs .swagger-ui .opblock .opblock-summary .authorization__btn,
+  .api-docs .swagger-ui .opblock .opblock-summary .opblock-control-arrow { align-self: center; }
+  .api-docs .swagger-ui .response-col_links { min-width: 54px; }
+}

@@ -9,11 +9,22 @@ services:
     user: "${SMS_UID:-10001}:${SMS_GID:-10001}"
     extra_hosts: [host.docker.internal:host-gateway]
     environment:
+      SMS_ADMIN_PASSWORD_FILE: /run/secrets/admin-password
+      SMS_STATE_DIR: /data
+      SMS_PUBLIC_URL: ${SMS_PUBLIC_URL:-}
       SMS_CONFIG_FILE: /run/secrets/server.json
+    secrets: [admin-password]
     volumes:
+      - sms-state:/data
       - ./.secrets/server.json:/run/secrets/server.json:ro
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     tmpfs: [/tmp:size=16m]
     mem_limit: 256m
+
+secrets:
+  admin-password:
+    file: ./.secrets/admin-password
+volumes:
+  sms-state:

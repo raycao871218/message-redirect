@@ -5,6 +5,10 @@
 !server.py
 !config.py
 !database.py
+!settings.py
+!admin.py
+!static/
+!static/**
 !schema.sql
 !schema_sqlite.sql
 !schema_mysql.sql

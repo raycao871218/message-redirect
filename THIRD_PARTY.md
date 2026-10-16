@@ -1,5 +1,9 @@
 # Third-party components
 
+The management panel uses Python [qrcode](https://pypi.org/project/qrcode/8.2/) 8.2 (BSD license) for locally generated SVG pairing codes. Swagger UI 5.33.2 is vendored from the official swagger-api/swagger-ui v5.33.2 distribution under Apache-2.0; the full LICENSE, NOTICE, upstream URLs and checksums are retained in `server/static/vendor/`. Both ordinary and cyber spotted-dove PNGs reuse this project's generated mascot assets; their prompts and origin are documented in `docs/branding.md`.
+
+Android QR scanning uses JourneyApps ZXing Android Embedded 4.3.0 and its ZXing core dependency under Apache-2.0. Camera permission is requested only for the scanner screen. AndroidX and desugaring dependencies retain their upstream license notices in the APK.
+
 The Python service uses FastAPI, Uvicorn, Pydantic, Psycopg (including its binary PostgreSQL client), PyMySQL and its cryptography dependencies; installed distributions retain their own license files in the Docker image. SQLite is provided by the Python standard library. PostgreSQL, MySQL and MariaDB official images are separate optional services and retain their respective upstream licenses. The project MIT license does not replace those licenses. Requirements are listed in `server/requirements.txt`; no dependency wheels or database binaries are checked into this repository.
 
 Original application code is MIT licensed. Gradle Wrapper scripts and JAR retain their original Apache-2.0 licensing and notices. Android SDK tools, local dependencies, Python wheels, build outputs and signing keys are not included. Downloaded dependencies retain their respective licenses; the project license does not replace them.

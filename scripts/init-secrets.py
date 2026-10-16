@@ -9,7 +9,7 @@ def initialize(directory):
     directory = Path(directory)
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     created = []
-    for name in ["api-token", "db-password", "db-root-password"]:
+    for name in ["api-token", "admin-password", "db-password", "db-root-password"]:
         path = directory / name
         try:
             fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)

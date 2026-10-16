@@ -49,12 +49,15 @@ try:
         if token_file.exists():
             token_file.chmod(0o600)
         token_file.write_text(token, encoding="utf-8"); token_file.chmod(0o444)
-        environment = {"SMS_API_TOKEN_FILE": "/run/secrets/api-token", "SMS_DB_TYPE": engine, "SMS_TEST_DEVICE_ID": device_id}
+        environment = {"SMS_API_TOKEN_FILE": "/run/secrets/api-token", "SMS_DB_TYPE": engine, "SMS_TEST_DEVICE_ID": device_id,
+                       "SMS_ADMIN_PASSWORD": secrets.token_urlsafe(32), "SMS_STATE_DIR": "/data"}
         mounts = []
         if engine == "sqlite":
             volume = network + "-data"; docker("volume", "create", volume, capture=True); created_volumes.append(volume)
             mounts = ["-v", volume + ":/data"]
         else:
+            state_volume = network + "-state"; docker("volume", "create", state_volume, capture=True); created_volumes.append(state_volume)
+            mounts = ["-v", state_volume + ":/data"]
             db_image = {"postgresql": "postgres:17-alpine", "mysql": "mysql:8.4", "mariadb": "mariadb:11.4"}[engine]
             docker("pull", db_image, timeout=600)
             prefix = {"postgresql": "POSTGRES", "mysql": "MYSQL", "mariadb": "MARIADB"}[engine]
