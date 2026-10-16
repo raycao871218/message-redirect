@@ -1,0 +1,12 @@
+**
+!Dockerfile
+!Dockerfile.offline
+!requirements.txt
+!server.py
+!config.py
+!database.py
+!schema.sql
+!schema_sqlite.sql
+!schema_mysql.sql
+!wheels/
+!wheels/*.whl

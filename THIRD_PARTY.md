@@ -1,3 +1,7 @@
 # Third-party components
 
+The Python service uses FastAPI, Uvicorn, Pydantic, Psycopg (including its binary PostgreSQL client), PyMySQL and its cryptography dependencies; installed distributions retain their own license files in the Docker image. SQLite is provided by the Python standard library. PostgreSQL, MySQL and MariaDB official images are separate optional services and retain their respective upstream licenses. The project MIT license does not replace those licenses. Requirements are listed in `server/requirements.txt`; no dependency wheels or database binaries are checked into this repository.
+
 Original application code is MIT licensed. Gradle Wrapper scripts and JAR retain their original Apache-2.0 licensing and notices. Android SDK tools, local dependencies, Python wheels, build outputs and signing keys are not included. Downloaded dependencies retain their respective licenses; the project license does not replace them.
+
+Android SMTP support uses [Eclipse Angus Mail](https://eclipse-ee4j.github.io/angus-mail/) (`org.eclipse.angus:jakarta.mail:2.0.5`) and [Eclipse Angus Activation](https://eclipse-ee4j.github.io/angus-activation/) (`org.eclipse.angus:angus-activation:2.0.3`), with their Jakarta Mail/Activation API dependencies. These components are distributed under EPL-2.0 or GPL-2.0 with the GNU Classpath Exception, as specified by their distributions. Their bundled LICENSE and NOTICE resources are retained in the APK. JUnit 4.13.2 (EPL-1.0) is used for tests only.

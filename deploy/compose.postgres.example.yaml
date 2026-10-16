@@ -1,0 +1,46 @@
+# API + PostgreSQL. Database has no published host port.
+services:
+  message-redirect:
+    build: ../server
+    image: message-redirect:local
+    restart: unless-stopped
+    ports:
+      - "${SMS_BIND_ADDRESS:-127.0.0.1}:${SMS_HTTP_PORT:-18081}:18081"
+    environment:
+      SMS_DB_TYPE: postgresql
+      SMS_DB_HOST: database
+      SMS_DB_PORT: "5432"
+      SMS_DB_NAME: ${SMS_DB_NAME:-sms_archive}
+      SMS_DB_USER: ${SMS_DB_USER:-sms_ingest}
+      SMS_DB_PASSWORD_FILE: /run/secrets/db-password
+      SMS_API_TOKEN_FILE: /run/secrets/api-token
+    secrets: [api-token, db-password]
+    depends_on:
+      database:
+        condition: service_healthy
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:size=16m]
+    mem_limit: 256m
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SMS_DB_NAME:-sms_archive}
+      POSTGRES_USER: ${SMS_DB_USER:-sms_ingest}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+    secrets: [db-password]
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+secrets:
+  api-token:
+    file: ./.secrets/api-token
+  db-password:
+    file: ./.secrets/db-password
+volumes:
+  postgres-data:

@@ -31,5 +31,8 @@ backups/
 *.aab
 
 # Production deployment and downloaded third-party wheels
-/compose.yaml
-backend/wheels/
+compose.yaml
+server/wheels/
+
+# Personal debug-build network policy (real LAN hosts stay local).
+/apps/android/app/src/debug/res/xml/network_security_config.xml

@@ -1,0 +1,32 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.nas.messageredirect'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.nas.messageredirect'
+        minSdk 23
+        targetSdk 34
+        versionCode 16
+        versionName '0.7.0'
+        testInstrumentationRunner 'com.nas.messageredirect.SmsInstrumentation'
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    // Isolate interactive setup checks from the user's installed app and private configuration.
+    buildTypes { debug { if (project.hasProperty('uiPreview')) applicationIdSuffix '.preview' } }
+    // Keep personal builds signed with the same ignored local key across build machines.
+    def personalDebugKey = rootProject.file('../../.secrets/android-debug.keystore')
+    if (personalDebugKey.exists()) {
+        signingConfigs.debug {
+            storeFile personalDebugKey
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+    packaging { resources { pickFirsts += ['META-INF/LICENSE.md', 'META-INF/NOTICE.md', 'META-INF/LICENSE.txt', 'META-INF/NOTICE.txt'] } }
+}
+dependencies {
+    implementation 'org.eclipse.angus:jakarta.mail:2.0.5'
+    implementation 'org.eclipse.angus:angus-activation:2.0.3'
+    testImplementation 'junit:junit:4.13.2'
+}

@@ -1,0 +1,19 @@
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#4D669D</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">#FCF6E8</item>
+        <item name="android:navigationBarColor">#FCF6E8</item>
+        <item name="android:windowBackground">#FCF6E8</item>
+    </style>
+    <style name="CrayonDialogTheme" parent="android:style/Theme.Material.Light.Dialog.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#4D669D</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowMinWidthMajor">0dp</item>
+        <item name="android:windowMinWidthMinor">0dp</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+</resources>

@@ -1,0 +1,4 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Pearl-dot neck markings remain visible when Android tints the icon. -->
+    <path android:fillColor="#000000" android:fillType="evenOdd" android:pathData="M52,31Q47,20 55,24L61,30Q74,28 79,41L84,46L78,51Q84,71 68,79Q57,84 45,77L36,81L36,74Q26,68 24,54L22,36Q24,28 29,37L39,50Q42,38 52,31ZM62,39A3,3 0,1 0,68 39A3,3 0,1 0,62 39ZM44,43A1.4,1.4 0,1 0,46.8 43A1.4,1.4 0,1 0,44 43ZM42,48A1.4,1.4 0,1 0,44.8 48A1.4,1.4 0,1 0,42 48ZM47,49A1.4,1.4 0,1 0,49.8 49A1.4,1.4 0,1 0,47 49ZM48,57L72,62L67,74L44,68ZM48,59L57,67L69,63L57,70Z" />
+</vector>

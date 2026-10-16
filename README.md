@@ -1,83 +1,130 @@
-# Message Redirect · 短信转存
+# 咕咕咕 · Message Redirect
 
-原生 Android App（Java，Android 6.0+）及自托管 Python/PostgreSQL 写入服务。接收普通短信，在手机持久化后批量上传；数据库密码保留在服务器，手机只保存服务 URL 和独立 Bearer 令牌。首次安装默认关闭上传，不内置地址或令牌。
+咕咕咕是一款原生 Android 短信转发 App，附带可选的 Docker 自托管服务。支持两种方式：手机直接通过 SMTP 发到邮箱，或通过自己的服务存入 SQLite、PostgreSQL、MySQL / MariaDB。项目代码采用 [MIT 许可证](LICENSE)。
 
-## 功能与边界
+## 项目结构
 
-- 新短信通过 `SMS_RECEIVED` 接收，合并分段并存入 SQLite。手动授权后可导入最近 100 条收件箱短信。
-- 上传每批最多 5 条。只有 HTTP 200 且确认 ID 与当前批次完全匹配，才标记上传完成；失败保留本地数据。
-- JobScheduler 在网络可用时上传，失败指数退避；每 15 分钟另检查待传队列，无数据时不请求服务器。系统省电限制可能延迟任务。
-- 服务端参数化 SQL，按 `(device_id,message_id)` 幂等写入；相同 ID、不同内容返回 409 并回滚整个批次。
-- 本地按号码/正文/发送时间去重；卸载或清除数据会丢失本地记录、生成新的设备 UUID，重新导入可能再次入库。
-- 不处理 MMS、RCS 或其他聊天应用，不发送短信，不申请成为默认短信 App。
-- 服务不提供短信读取 API。需要阅读归档时，可另行部署 [NASBridge](https://github.com/raycao871218/NASBridge)。
+```text
+apps/android/  原生 Android 工程，独立的 Gradle 构建
+server/        写入服务、数据库适配、Dockerfile 和服务端测试
+deploy/        Docker Compose 模板和环境变量示例
+docs/          部署、品牌等文档
+scripts/       仓库级测试、部署及本地维护工具
+```
 
-“强行停止”后需重新打开 App；厂商后台限制也可能影响接收和上传。配置令牌后仍需用户授权短信权限。正式应用分发需要自行处理签名与平台的短信权限要求。
+App 和服务端通过 HTTP API 连接，可分别开发、构建和发布。目前保留一个 Git 仓库。
 
-## Android 构建与使用
+## 功能
 
-依赖 JDK 17、Android SDK Platform 34 和 Build Tools 34.0.0。设置自己的 `JAVA_HOME` 和未跟踪的 `local.properties`：
+- 首次使用通过设置向导完成配置。配置保存成卡片，点卡片切换；仅在“编辑配置 / 新增配置”时进入详细表单，可保存多个邮箱或数据库目标。
+- 邮件由手机直接发送，无需部署后端。内置 Gmail、QQ、网易和自定义 SMTP 引导；微软个人邮箱需 OAuth2，本版仅提供参数说明，暂未接入微软登录。
+- 接收手机号可授权从 SIM 读取或手动填写，支持双卡。邮件注明接收手机号与原发送号码；号码随短信保存，不改写历史。不确定号码时显示“未记录”。
+- 首页只显示状态，不展示短信列表或正文。短信先保存在手机队列，HTTP 入库成功确认后才标记完成。邮件提交结果不明时暂停重发，避免盲目重复投递。
+- 服务支持持久化、健康检查、访问令牌验证与事务入库。相同 `(device_id, message_id)` 重试不重复保存；相同 ID 内容冲突返回 409 并回滚整批。
+- 蜡笔风界面与丑萌珠颈斑鸠小信使（灰褐羽色、黑底白点颈斑）。选择自建数据库后，界面中的斑鸠换上赛博头盔与夹克盔甲，切回邮件恢复默认；向导和编辑页可即时预览。图标适配 Android 自适应图标和单色主题图标，生成说明见 [图标说明](docs/branding.md)。
+
+## Docker 快速启动
+
+需要 Docker Engine / Docker Desktop 和 Docker Compose v2。以下从仓库根目录进入 `deploy/` 操作；第一次使用默认选择 SQLite，数据保存在 Docker 命名卷。
+
+```sh
+cd deploy
+cp .env.example .env
+python3 ../scripts/init-secrets.py
+cp compose.example.yaml compose.yaml
+docker compose up -d --build
+docker compose ps
+```
+
+`init-secrets.py` 为新部署生成随机令牌及数据库密码，已有文件不会覆盖。新部署的实际凭据在已忽略的 `deploy/.secrets/` 内；新建目录权限为 0700，文件允许容器以只读挂载方式读取。请保留父目录的私有访问权限。
+
+Compose 默认只绑定 `127.0.0.1:18081`。手机需要连接时，将本地 `.env` 的 `SMS_BIND_ADDRESS` 改为服务器可访问的地址，或配置 HTTPS 反向代理。`SMS_HTTP_PORT` 可以修改宿主机端口。
+
+App 新建“自建数据库”配置卡：
+
+- **服务地址**：`https://你的服务域名`，或可信局域网的服务地址。
+- **访问令牌**：读取本地 `.secrets/api-token` 的内容。不会在源码、镜像或示例中内置真实令牌。
+
+App 连接的是写入服务，数据库账号密码留在服务端。当前没有短信查询后台；归档可用数据库工具访问，PostgreSQL 用户也可自行部署 [NASBridge](https://github.com/raycao871218/NASBridge)。
+
+## 选择数据库
+
+模板均位于 `deploy/`。首次部署选择一个模板复制为本地 `compose.yaml`，再执行上面的启动命令。
+
+| 模板 | 部署内容 | 数据位置 |
+| --- | --- | --- |
+| `compose.example.yaml` | 服务 + SQLite | `sms-data` 命名卷 |
+| `compose.postgres.example.yaml` | 服务 + PostgreSQL 17 | `postgres-data` 命名卷 |
+| `compose.mysql.example.yaml` | 服务 + MySQL 8.4 | `mysql-data` 命名卷 |
+| `compose.mariadb.example.yaml` | 服务 + MariaDB 11.4 | `mariadb-data` 命名卷 |
+| `compose.external.example.yaml` | 仅服务，连接已有数据库 | 用户自己的数据库 |
+
+容器数据库的名称与应用账号可通过 `.env` 中 `SMS_DB_NAME`、`SMS_DB_USER` 设置；应用密码和管理密码使用不同的本地秘密文件。数据库端口不发布到宿主机。删除/重建服务容器不会删除命名卷；`docker compose down -v` 会删除数据卷，请先备份。
+
+完整参数、外部数据库、升级与备份说明见 [部署文档](docs/deployment.md)。
+
+**已有部署请保留自己的 `compose.yaml`、网络、卷和数据库配置，直接备份后升级服务镜像。不要用新模板覆盖正在使用的部署。** 旧版 `.secrets/server.json` 没有 `database.type` 时，仍按 PostgreSQL 处理，保留 `message_redirect.sms_messages` 表和原有幂等哈希。
+
+## Android 使用与构建
+
+Android 6.0+。首次选择“邮件转发”或“自建数据库”，设置接收手机号并授予短信接收权限。后续通过“管理转发配置”选择卡片；总开关在首页控制，切换卡片不会擅自开启已暂停的转发。仅接收新短信，不自动导入历史收件箱。
+
+Gmail 使用应用专用密码；QQ、网易使用客户端授权码。邮箱授权码用 Android Keystore 加密保存在手机私有配置中，编辑时留空保留；更换服务器或账号须重新填写。
+
+发送中断时，App 可能无法判断邮件是否寄出，为避免重复不会自动重发这封邮件。打开“更多操作 → 检查邮件是否收到”，先检查收件箱和垃圾箱，再选择“已收到”或“没收到，重发”；重发可能产生重复邮件。首页只在确实需要人工检查时显示对应数量，正常发送中的邮件单独标明。
+
+“更多操作 → 关于咕咕咕”显示当前安装版本、构建号和斑鸠。“更多操作 → 使用说明”集中解释自动转发、失败重试、邮件检查、配置切换和后台运行。暂停时新短信仍保留在手机，重新开启后继续发送；已经开始发送的短信保留原收件邮箱或服务地址，切回对应配置后继续发送。系统后台/省电限制可能延迟处理；强行停止后需重新打开 App。
+
+构建依赖 JDK 17、Android SDK Platform 34 / Build Tools 34.0.0。在未跟踪的 `apps/android/local.properties` 配置 SDK：
 
 ```properties
 sdk.dir=/path/to/Android/sdk
 ```
 
 ```sh
-./gradlew :app:assembleDebug :app:lintDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+./apps/android/gradlew -p apps/android :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+adb install -r apps/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-在“服务器配置”填写自己的 HTTP/HTTPS 地址和至少 32 字符令牌，开启自动上传；授权接收新短信后可点击立即上传或手动导入历史短信。默认仅允许 HTTPS，以及本机/模拟器的 HTTP 测试地址。自建局域网必须使用 HTTP 时，在 `app/src/main/res/xml/network_security_config.xml` 添加自己的域名或地址后重新构建。明文 HTTP 会暴露传输内容，跨可信网络访问时使用 HTTPS。不要提交私钥、签名文件、令牌、真实短信或构建 APK。
+覆盖更新必须保持原签名。个人调试密钥可放在仓库根目录已忽略的 `.secrets/android-debug.keystore`。不要因签名不一致而直接卸载，卸载会丢失本地队列和加密配置。
 
-## 服务端部署
+App 默认允许 HTTPS 和本机测试地址。确实需要局域网 HTTP 时，可将 `apps/android/app/src/main/res/xml/network_security_config.xml` 复制到已忽略的 `apps/android/app/src/debug/res/xml/network_security_config.xml`，仅在本地覆盖文件中加入自己的地址；跨不可信网络使用 HTTPS。
 
-需要 Docker Compose 和自行准备的 PostgreSQL 数据库/账号。服务启动会执行 `backend/schema.sql` 创建 `message_redirect.sms_messages` 及索引；账号需要相应的 schema/table 权限。时间字段使用 `timestamptz`。数据库不包含在 Compose 中。
+不处理 MMS、RCS 或其他聊天应用，不发送短信，不申请成为默认短信 App。正式分发需自行处理签名和平台的短信权限要求。
 
-```sh
-mkdir -p .secrets
-cp backend/config.example.json .secrets/server.json
-cp compose.example.yaml compose.yaml
-cp .env.example .env
-```
+## 开发与测试
 
-编辑 `.secrets/server.json` 填写数据库连接，生成独立随机令牌（例如运行 `python3 -c 'import secrets; print(secrets.token_urlsafe(32))'` 后自行填入）。配置文件按只读卷挂载，不复制到镜像。
-
-Compose 默认仅绑定 `127.0.0.1:18081`。如需手机访问，在本地 `.env` 中设置自己的 `SMS_BIND_ADDRESS`，或通过 HTTPS 反向代理暴露。配置文件所有者 UID/GID 必须与 `SMS_UID/SMS_GID` 对应，权限可设为 600；根据宿主机修改，示例默认 1026:100。
-
-构建使用 Linux x86_64 / Python 3.12 wheels，需要先下载；其他 CPU 架构应调整下载脚本和基础镜像环境：
-
-```sh
-./scripts/download-wheels.sh
-docker compose -f compose.yaml config --quiet
-docker compose -f compose.yaml up -d --build
-docker compose -f compose.yaml ps
-docker compose -f compose.yaml logs --tail=30 message-redirect
-```
-
-示例使用独立 Docker 子网与固定容器地址；如与现有网络冲突请修改。PostgreSQL 防火墙和 `pg_hba.conf` 需允许对应客户端。可选 `scripts/configure-pg.py --help` 工具由管理员在数据库主机执行，显式指定数据库、用户、容器地址、HBA 路径及备份目录；它会修改访问规则并 reload，部署前应单独审核。
-
-## 测试与可选管理脚本
-
-本地后端单元测试使用 mock，不连接生产数据库或读取私人短信：
+以下命令在仓库根目录执行；Windows 可使用 `apps/android/gradlew.bat -p apps/android`。
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install -r backend/requirements.txt httpx
-python -m unittest discover -s backend/tests -p test_api.py -v
+python -m pip install -r server/requirements.txt httpx
+python -m unittest discover -s server/tests -p 'test_*.py' -v
 ```
 
-专用模拟器测试使用 `test-messages.db` 和 `test-sync`，覆盖本地去重、排序、持久化与失败确认处理：
+这些测试使用 mock 或临时 SQLite，覆盖认证、输入校验、事务提交/回滚、并发重复提交、故障与配置兼容，不连接生产数据库。Docker 实测使用独立容器、网络和随机测试凭据：
 
 ```sh
-./gradlew :app:assembleDebugAndroidTest
-adb -e install -r app/build/outputs/apk/debug/app-debug.apk
-adb -e install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb -e shell am instrument -w com.nas.messageredirect.test/com.nas.messageredirect.SmsInstrumentation
+python3 scripts/test-containers.py
+# 或只测一种
+python3 scripts/test-containers.py --engines mysql
 ```
 
-可选脚本 `provision-phone.py <serial> --server-url <your-url>` 从本地 `.secrets/server.json` 为调试 App 配置令牌；使用已授权 ADB，要求调试包支持 `run-as`。不会将令牌写入源码。
+脚本检查四种数据库的真实入库、Unicode、重复重试、冲突回滚、服务容器重建后的数据保留，并清理本次创建的测试资源。GitHub Actions 会运行这些检查。
 
-`nas-admin.py` 使用显式 `--host` 或 `NAS_SSH_TARGET` 以及本地 `.secrets/ssh-password` 执行管理员命令。`integration-nas.py` 会在远端容器中运行真实 API/数据库集成测试，创建临时记录并按随机 UUID 清理；只有明确要操作对应测试环境时才运行。常规单元测试不执行这些管理脚本。
+Android 测试使用合成短信与本机 SMTP fixture，不发送真实邮件。UI 回归可用 `-PuiPreview` 构建独立 `.preview` 测试包；正常安装不会包含测试配置。
 
-仓库不包含任何私密配置、短信数据库、设备标识、运行截图、下载 wheels 或 APK。应用代码按 [MIT](LICENSE) 开源，第三方说明见 [THIRD_PARTY.md](THIRD_PARTY.md)。
+```sh
+./apps/android/gradlew -p apps/android -PuiPreview :app:assembleDebug :app:assembleDebugAndroidTest
+adb install -r apps/android/app/build/outputs/apk/debug/app-debug.apk
+adb install -r apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w com.nas.messageredirect.preview.test/com.nas.messageredirect.SmsInstrumentation
+adb shell am instrument -w -e ui_flow true com.nas.messageredirect.preview.test/com.nas.messageredirect.SmsInstrumentation
+```
+
+## 开源与隐私
+
+本仓库只保存代码、公共模板和示例。实际 `.env`、`.secrets/`、`compose.yaml`、短信数据库、日志、运行截图、APK 和签名密钥都已忽略。公开代码前也需检查历史提交，忽略规则不会移除已经提交过的秘密。
+
+应用代码采用 [MIT](LICENSE)；依赖的许可证和说明见 [THIRD_PARTY.md](THIRD_PARTY.md)。

@@ -1,7 +1,0 @@
-**
-!Dockerfile
-!requirements.txt
-!server.py
-!schema.sql
-!wheels/
-!wheels/*.whl

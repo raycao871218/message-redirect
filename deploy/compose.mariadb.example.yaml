@@ -1,0 +1,49 @@
+# API + MariaDB. No database port is published to the host.
+services:
+  message-redirect:
+    build: ../server
+    image: message-redirect:local
+    restart: unless-stopped
+    ports:
+      - "${SMS_BIND_ADDRESS:-127.0.0.1}:${SMS_HTTP_PORT:-18081}:18081"
+    environment:
+      SMS_DB_TYPE: mariadb
+      SMS_DB_HOST: database
+      SMS_DB_PORT: "3306"
+      SMS_DB_NAME: ${SMS_DB_NAME:-sms_archive}
+      SMS_DB_USER: ${SMS_DB_USER:-sms_ingest}
+      SMS_DB_PASSWORD_FILE: /run/secrets/db-password
+      SMS_API_TOKEN_FILE: /run/secrets/api-token
+    secrets: [api-token, db-password]
+    depends_on:
+      database:
+        condition: service_healthy
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:size=16m]
+    mem_limit: 256m
+  database:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${SMS_DB_NAME:-sms_archive}
+      MARIADB_USER: ${SMS_DB_USER:-sms_ingest}
+      MARIADB_PASSWORD_FILE: /run/secrets/db-password
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db-root-password
+    secrets: [db-password, db-root-password]
+    volumes: [mariadb-data:/var/lib/mysql]
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+secrets:
+  api-token:
+    file: ./.secrets/api-token
+  db-password:
+    file: ./.secrets/db-password
+  db-root-password:
+    file: ./.secrets/db-root-password
+volumes:
+  mariadb-data:

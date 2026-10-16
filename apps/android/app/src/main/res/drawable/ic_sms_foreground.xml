@@ -1,0 +1,5 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:width="86dp" android:height="86dp" android:gravity="center">
+        <bitmap android:src="@drawable/messenger_mascot" android:gravity="fill" android:filter="true" />
+    </item>
+</layer-list>

@@ -1,0 +1,19 @@
+# API only: connect to an existing PostgreSQL, MySQL or MariaDB instance.
+services:
+  message-redirect:
+    build: ../server
+    image: message-redirect:local
+    restart: unless-stopped
+    ports:
+      - "${SMS_BIND_ADDRESS:-127.0.0.1}:${SMS_HTTP_PORT:-18081}:18081"
+    user: "${SMS_UID:-10001}:${SMS_GID:-10001}"
+    extra_hosts: [host.docker.internal:host-gateway]
+    environment:
+      SMS_CONFIG_FILE: /run/secrets/server.json
+    volumes:
+      - ./.secrets/server.json:/run/secrets/server.json:ro
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:size=16m]
+    mem_limit: 256m
