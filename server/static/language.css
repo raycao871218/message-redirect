@@ -16,3 +16,5 @@
   .docs-banner strong { flex: 1; min-width: 0; }
   .docs-banner a { margin-left: 0; }
 }
+
+.locale-switch .locale-flag { display: inline-block; width: 21px; height: 14px; object-fit: fill; border-radius: 2px; box-shadow: 0 0 0 1px #3b3a4926; vertical-align: -2px; flex-shrink: 0; margin-right: 4px; }

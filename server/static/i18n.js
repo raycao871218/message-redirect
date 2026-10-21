@@ -29,7 +29,10 @@ window.I18n = (() => {
       }
     }
     const badge = document.getElementById("language-button");
-    if (badge) badge.textContent = {en: "🇺🇸 EN", zh: "🇨🇳 CH", ja: "🇯🇵 JP"}[language];
+    if (badge) {
+      const option = document.querySelector('[data-language="' + language + '"]');
+      badge.replaceChildren(...Array.from(option.childNodes, node => node.cloneNode(true)));
+    }
     for (const button of document.querySelectorAll("[data-language]")) {
       const selected = button.dataset.language === preference;
       button.setAttribute("aria-pressed", String(selected));
