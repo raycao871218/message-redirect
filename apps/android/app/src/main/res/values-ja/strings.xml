@@ -115,7 +115,7 @@
     <string name="retry_unsent_sms">"未送信のSMSを再送"</string>
     <string name="check_email_delivery">"メールの到着を確認"</string>
     <string name="usage_guide">"使い方"</string>
-    <string name="about_gugugu">"GuGuGuについて"</string>
+    <string name="about_gugugu">"クルックーについて"</string>
     <string name="close">"閉じる"</string>
     <string name="coo_coo_your_message_is_on_its_way">"クークー、メッセージをお届けします。"</string>
     <string name="version">"バージョン"</string>
@@ -166,7 +166,7 @@
     <string name="sms_permission_was_not_granted_if_the_prompt_no_longer_appears_op">"SMSの権限が許可されていません。確認画面が表示されない場合は、端末の権限設定を開いてください。"</string>
     <string name="cyber_dove_self_hosted_archive">"サイバーキジバト · セルフホスト"</string>
     <string name="spotted_dove_email_forwarding">"キジバト · メール転送"</string>
-    <string name="invalid_gugugu_pairing_code_scan_the_qr_code_in_the_service_admin">"有効なGuGuGuの設定コードではありません。管理画面のQRコードを読み取ってください。"</string>
+    <string name="invalid_gugugu_pairing_code_scan_the_qr_code_in_the_service_admin">"有効なクルックーの設定コードではありません。管理画面のQRコードを読み取ってください。"</string>
     <string name="scan_to_find_your_nest">"スキャンして巣に接続"</string>
     <string name="point_the_camera_at_the_configuration_qr_code_in_the_service_pane">"管理画面の設定用QRコードにカメラを向けてください。設定を変更する前に内容を確認できます。"</string>
     <string name="camera_unavailable_go_back_and_retry_or_enter_the_service_url_and">"カメラを使用できません。戻って再試行するか、URLとトークンを手入力してください。"</string>
@@ -221,7 +221,7 @@
     <string name="new_sms_will_be_forwarded_automatically_unsent_messages_will_be_r">"新しいSMSを自動転送し、未送信のSMSも再試行します。"</string>
     <string name="email_delivery_needs_confirmation">"メールの送信結果の確認が必要です"</string>
     <string name="could_not_connect_or_sign_in_to_your_email_provider_check_your_ne">"メールへの接続または認証に失敗しました。ネットワーク・アカウント・パスワードを確認してください。SMSは後で再試行されます。"</string>
-    <string name="app_name">"GuGuGu"</string>
+    <string name="app_name">"クルックー"</string>
     <string name="provider_gmail">"Google Gmail"</string>
     <string name="unexpected_error">"操作できませんでした。設定を確認して再試行してください。"</string>
     <string name="status_mail_accepted">"メールサーバーが%1$d通を受け付けました。実際の到着は受信トレイで確認してください。"</string>
