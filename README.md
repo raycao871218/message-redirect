@@ -1,9 +1,13 @@
-# 咕咕咕 · Message Redirect
+<h1 align="center">咕咕咕 · Message Redirect</h1>
 
-[![简体中文](https://img.shields.io/badge/简体中文-0969da?style=for-the-badge)](README.md)
-[![English](https://img.shields.io/badge/English-0969da?style=for-the-badge)](README.en.md)
+<p align="center">
+  <img src="docs/assets/dove-courtship.gif" alt="咕咕咕斑鸠鞠躬求偶动画" width="280">
+</p>
 
-![咕咕咕斑鸠鞠躬求偶动画](docs/assets/dove-courtship.gif)
+<p align="center">
+  <a href="README.md"><img src="https://img.shields.io/badge/🇨🇳_简体中文-当前-blue" alt="简体中文（当前）"></a>
+  <a href="README.en.md"><img src="https://img.shields.io/badge/🇺🇸_English-Available-green" alt="English"></a>
+</p>
 
 家里有多部手机，出门又不方便全部带上，验证码往往发到了留在家里的那一部。咕咕咕就是替你在家收短信的小信使：在留家的 Android 手机上运行，将短信和验证码投递到你随身手机能查看的邮箱，或存入你自己的归档服务。
 
