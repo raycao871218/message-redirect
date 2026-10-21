@@ -9,23 +9,29 @@
   <a href="README.en.md"><img src="https://img.shields.io/badge/🇺🇸_English-Current-blue" alt="English (current)"></a>
 </p>
 
-When you have several phones, taking all of them with you is not always practical—and verification codes often arrive on the one you left at home. GuGuGu is a little messenger for that stay-at-home Android phone. It forwards SMS messages and verification codes to an email inbox you can check on the go, or stores them in your own archive service.
+**Download the app and start using it—no server, Docker, or database deployment required.** GuGuGu is a native Android SMS forwarding app. Configure your email account on the phone, and it can forward SMS messages and verification codes directly via SMTP.
 
-The project is designed primarily for deployment on your home network. The self-hosted backend does not need to be exposed to the internet. While away, you can read forwarded messages by email or connect to your home VPN to access the archive.
+When you have several phones, taking all of them with you is not always practical—and verification codes often arrive on the one you left at home. GuGuGu is a little messenger for that stay-at-home Android phone, delivering messages to an email inbox you can check on the go.
 
-GuGuGu is a native Android SMS forwarding app with an optional Docker-based, self-hosted service. You can send messages directly from the phone via SMTP, or archive them through your own service using SQLite, PostgreSQL, MySQL, or MariaDB. The project is released under the [MIT License](LICENSE).
+Self-hosted archiving is an optional advanced feature, primarily for users building integrations or custom clients, or those who need greater control over message privacy and storage. The project is released under the [MIT License](LICENSE).
 
-## Project structure
+## Download and use (no deployment required)
 
-```text
-apps/android/  Native Android app with an independent Gradle build
-server/        Archive API, database adapters, Dockerfile, and server tests
-deploy/        Docker Compose templates and example environment variables
-docs/          Deployment, branding, and other documentation
-scripts/       Repository-level testing, deployment, and local maintenance tools
-```
+1. Visit [Download the latest app](https://github.com/raycao871218/message-redirect/releases/latest), download the `.apk` under **Assets**, and install it on the Android phone that receives your SMS messages (Android 6.0 or later).
+2. Open the app and choose “邮件转发” (Email forwarding) in the setup wizard. Follow the prompts to configure your SMTP account and recipient address. Use an app password for Gmail or a client authorization code for QQ Mail and NetEase Mail.
+3. Set the receiving phone number, grant permission to receive SMS, and enable forwarding with the switch on the home screen.
 
-The app and server communicate over an HTTP API and can be developed, built, and released independently. Both currently live in one Git repository.
+Keep the phone connected to the internet, and new SMS messages will be sent directly to your chosen inbox. Read them by email on the phone you carry, with no self-hosted service or app compilation required. Only new messages are forwarded; your existing inbox is not automatically imported.
+
+## App usage
+
+Requires Android 6.0 or later. During setup, choose “邮件转发” (Email forwarding) or “自建数据库” (Self-hosted database), set the receiving phone number, and grant permission to receive SMS. Later, use “管理转发配置” (Manage forwarding configurations) to choose a configuration card. The main switch on the home screen controls forwarding; switching cards does not enable forwarding when it is paused. The app receives new messages only and does not automatically import your existing inbox.
+
+Use an app password for Gmail or a client authorization code for QQ Mail and NetEase Mail. Email credentials are encrypted with Android Keystore and stored in the phone's private app settings. Leave the credential field blank when editing to keep the saved value. Changing the server or account requires entering the credential again.
+
+If sending is interrupted, the app may be unable to determine whether an email was sent. It will not automatically retry that email, to avoid duplicates. Open “更多操作 → 检查邮件是否收到” (More actions → Check email delivery), check your inbox and spam folder, then choose “已收到” (Received) or “没收到，重发” (Not received, resend). Resending may produce a duplicate email. The home screen shows a manual-check count only when your attention is needed; emails currently being sent are shown separately.
+
+“更多操作 → 关于咕咕咕” (More actions → About GuGuGu) shows the installed version, build number, and dove mascot. “更多操作 → 使用说明” (More actions → Usage guide) explains automatic forwarding, failed-message retries, email delivery checks, configuration switching, and background operation. New messages remain queued on the phone while forwarding is paused and resume sending when it is enabled again. Messages that have already started sending retain their original email recipient or service URL and continue when you switch back to the corresponding configuration. System background and battery restrictions may delay processing. After force-stopping the app, open it again to resume operation.
 
 ## Features
 
@@ -38,7 +44,13 @@ The app and server communicate over an HTTP API and can be developed, built, and
 - `/docs` serves a local Swagger UI, and `/openapi.json` provides the API specification for building your own clients. Neither NASBridge nor an external documentation CDN is required.
 - A cozy, crayon-inspired interface features a charmingly wonky spotted dove with grey-brown feathers and a black neck patch dotted with white spots. Choose a self-hosted archive and the dove puts on a cyber helmet and armored jacket; switch back to email and its usual look returns. The wizard and editor preview the change immediately. Launcher icons support Android adaptive and monochrome themed icons. See the [branding and icon notes](docs/branding.md).
 
-## Docker quick start
+## Optional: self-hosted archiving
+
+Deploy the companion service if you want to build a custom client through the API, integrate with your own systems, or keep messages out of email providers and archive them in a database you control. The service supports SQLite, PostgreSQL, MySQL, and MariaDB. Database credentials stay on the server.
+
+The service can run entirely on your home network without being exposed to the internet. Connect to your home VPN to access the archive while away. The Docker and database configuration below applies only to this optional setup.
+
+### Docker quick start
 
 You need Docker Engine or Docker Desktop and Docker Compose v2. From the repository root, enter `deploy/` and run the following commands. The default template uses SQLite and stores data in a Docker named volume.
 
@@ -66,7 +78,7 @@ To create a self-hosted database configuration card in the app, provide:
 
 The app connects to the companion archive service; database credentials stay on the server. The admin panel handles configuration. Developers can use the Bearer-authenticated API to page through messages, retrieve message details, and manage shared read status. See the [API documentation](docs/api.md) for the complete protocol. Queries do not automatically mark messages as read or change the phone's inbox state. PostgreSQL users can also deploy [NASBridge](https://github.com/raycao871218/NASBridge) separately; it is not a dependency of GuGuGu's archive service.
 
-## Choosing a database
+### Choosing a database
 
 All templates are in `deploy/`. For a new deployment, copy one template to your local `compose.yaml`, then run the startup commands above.
 
@@ -84,15 +96,19 @@ See the [deployment guide](docs/deployment.md) for all parameters, external data
 
 **For an existing deployment, keep your own `compose.yaml`, networks, volumes, and database configuration. Back up your data, then upgrade the service image. Do not overwrite a running deployment with a new template.** Legacy `.secrets/server.json` files without `database.type` are still treated as PostgreSQL configurations, preserving the `message_redirect.sms_messages` table and existing idempotency hashes.
 
-## Android usage and building
+## Project structure
 
-Requires Android 6.0 or later. During setup, choose “邮件转发” (Email forwarding) or “自建数据库” (Self-hosted database), set the receiving phone number, and grant permission to receive SMS. Later, use “管理转发配置” (Manage forwarding configurations) to choose a configuration card. The main switch on the home screen controls forwarding; switching cards does not enable forwarding when it is paused. The app receives new messages only and does not automatically import your existing inbox.
+```text
+apps/android/  Native Android app with an independent Gradle build
+server/        Archive API, database adapters, Dockerfile, and server tests
+deploy/        Docker Compose templates and example environment variables
+docs/          Deployment, branding, and other documentation
+scripts/       Repository-level testing, deployment, and local maintenance tools
+```
 
-Use an app password for Gmail or a client authorization code for QQ Mail and NetEase Mail. Email credentials are encrypted with Android Keystore and stored in the phone's private app settings. Leave the credential field blank when editing to keep the saved value. Changing the server or account requires entering the credential again.
+The app and server communicate over an HTTP API and can be developed, built, and released independently. Both currently live in one Git repository.
 
-If sending is interrupted, the app may be unable to determine whether an email was sent. It will not automatically retry that email, to avoid duplicates. Open “更多操作 → 检查邮件是否收到” (More actions → Check email delivery), check your inbox and spam folder, then choose “已收到” (Received) or “没收到，重发” (Not received, resend). Resending may produce a duplicate email. The home screen shows a manual-check count only when your attention is needed; emails currently being sent are shown separately.
-
-“更多操作 → 关于咕咕咕” (More actions → About GuGuGu) shows the installed version, build number, and dove mascot. “更多操作 → 使用说明” (More actions → Usage guide) explains automatic forwarding, failed-message retries, email delivery checks, configuration switching, and background operation. New messages remain queued on the phone while forwarding is paused and resume sending when it is enabled again. Messages that have already started sending retain their original email recipient or service URL and continue when you switch back to the corresponding configuration. System background and battery restrictions may delay processing. After force-stopping the app, open it again to resume operation.
+## Building the Android app from source
 
 Building requires JDK 17, Android SDK Platform 34, and Build Tools 34.0.0. Set the SDK path in the untracked `apps/android/local.properties` file:
 
