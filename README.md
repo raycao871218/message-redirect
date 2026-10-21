@@ -1,11 +1,11 @@
-<h1 align="center">GuGuGu (咕咕咕) · Message Redirect</h1>
+<h1 align="center">GuGuGu · Message Redirect</h1>
 
 <p align="center">
   <img src="docs/assets/dove-courtship.gif" alt="GuGuGu the spotted dove performing a courtship bow" width="280">
 </p>
 
 <p align="center">
-  <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/🇨🇳_简体中文-可用-green" alt="简体中文"></a>
+  <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/🇨🇳_简体中文-Available-green" alt="Simplified Chinese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸_English-Current-blue" alt="English (current)"></a>
 </p>
 
@@ -18,7 +18,7 @@ Self-hosted archiving is an optional advanced feature, primarily for users build
 ## Download and use (no deployment required)
 
 1. Visit [Download the latest app](https://github.com/raycao871218/message-redirect/releases/latest), download the `.apk` under **Assets**, and install it on the Android phone that receives your SMS messages (Android 6.0 or later).
-2. Open the app and choose “邮件转发” (Email forwarding) in the setup wizard. Follow the prompts to configure your SMTP account and recipient address. Use an app password for Gmail or a client authorization code for QQ Mail and NetEase Mail.
+2. Open the app and choose “Email forwarding” in the setup wizard. Follow the prompts to configure your SMTP account and recipient address. Use an app password for Gmail or a client authorization code for QQ Mail and NetEase Mail.
 3. Set the receiving phone number, grant permission to receive SMS, and enable forwarding with the switch on the home screen.
 
 Keep the phone connected to the internet, and new SMS messages will be sent directly to your chosen inbox. Read them by email on the phone you carry, with no self-hosted service or app compilation required. Only new messages are forwarded; your existing inbox is not automatically imported.
@@ -27,13 +27,13 @@ The app follows your system language by default, with English, Chinese (Simplifi
 
 ## App usage
 
-Requires Android 6.0 or later. During setup, choose “邮件转发” (Email forwarding) or “自建数据库” (Self-hosted database), set the receiving phone number, and grant permission to receive SMS. Later, use “管理转发配置” (Manage forwarding configurations) to choose a configuration card. The main switch on the home screen controls forwarding; switching cards does not enable forwarding when it is paused. The app receives new messages only and does not automatically import your existing inbox.
+Requires Android 6.0 or later. During setup, choose “Email forwarding” or “Self-hosted archive”, set the receiving phone number, and grant permission to receive SMS. Later, use “Manage profiles” to choose a configuration card. The main switch on the home screen controls forwarding; switching cards does not enable forwarding when it is paused. The app receives new messages only and does not automatically import your existing inbox.
 
 Use an app password for Gmail or a client authorization code for QQ Mail and NetEase Mail. Email credentials are encrypted with Android Keystore and stored in the phone's private app settings. Leave the credential field blank when editing to keep the saved value. Changing the server or account requires entering the credential again.
 
-If sending is interrupted, the app may be unable to determine whether an email was sent. It will not automatically retry that email, to avoid duplicates. Open “更多操作 → 检查邮件是否收到” (More actions → Check email delivery), check your inbox and spam folder, then choose “已收到” (Received) or “没收到，重发” (Not received, resend). Resending may produce a duplicate email. The home screen shows a manual-check count only when your attention is needed; emails currently being sent are shown separately.
+If sending is interrupted, the app may be unable to determine whether an email was sent. It will not automatically retry that email, to avoid duplicates. Open “More actions → Check email delivery”, check your inbox and spam folder, then choose “Received” or “Not received, resend”. Resending may produce a duplicate email. The home screen shows a manual-check count only when your attention is needed; emails currently being sent are shown separately.
 
-“更多操作 → 关于咕咕咕” (More actions → About GuGuGu) shows the installed version, build number, and dove mascot. “更多操作 → 使用说明” (More actions → Usage guide) explains automatic forwarding, failed-message retries, email delivery checks, configuration switching, and background operation. New messages remain queued on the phone while forwarding is paused and resume sending when it is enabled again. Messages that have already started sending retain their original email recipient or service URL and continue when you switch back to the corresponding configuration. System background and battery restrictions may delay processing. After force-stopping the app, open it again to resume operation.
+“More actions → About GuGuGu” shows the installed version, build number, and dove mascot. “More actions → Usage guide” explains automatic forwarding, failed-message retries, email delivery checks, configuration switching, and background operation. New messages remain queued on the phone while forwarding is paused and resume sending when it is enabled again. Messages that have already started sending retain their original email recipient or service URL and continue when you switch back to the corresponding configuration. System background and battery restrictions may delay processing. After force-stopping the app, open it again to resume operation.
 
 ## Features
 
@@ -69,13 +69,13 @@ docker compose ps
 
 `init-secrets.py` generates random tokens and database passwords for a new deployment without overwriting existing files. Deployment credentials are stored in the ignored `deploy/.secrets/` directory. Newly created directories have permissions of 0700, and the files can be mounted read-only by the containers. Keep the parent directory private.
 
-Open the service URL in a browser to access the admin panel, “服务小窝” (Service Nest). Sign in with the admin password in your local `deploy/.secrets/admin-password` file. This password is separate from the app access token. Enter a service URL reachable from your phone and generate a QR code. In the app, add a “自建数据库” (Self-hosted database) configuration, tap “扫码配置” (Scan configuration), confirm the details, and save. The camera runs only while the scanning page is open and closes when you leave. You can also enter the details manually without granting camera permission.
+Open the service URL in a browser to access the admin panel, “Service Nest”. Sign in with the admin password in your local `deploy/.secrets/admin-password` file. This password is separate from the app access token. Enter a service URL reachable from your phone and generate a QR code. In the app, add a “Self-hosted archive” configuration, tap “Scan configuration”, confirm the details, and save. The camera runs only while the scanning page is open and closes when you leave. You can also enter the details manually without granting camera permission.
 
 The database configuration and any reset access token are stored in `/data/settings.json`, so keep the data volume. On first startup, the service imports connection settings and the token from environment variables or legacy JSON. After that, settings saved through the panel take precedence; recreating the container does not restore an old token. Changing the connection affects subsequent writes and does not automatically migrate existing messages.
 
 By default, Compose binds only to `127.0.0.1:18081`. To connect from your phone, change `SMS_BIND_ADDRESS` in your local `.env` to a reachable address on the server, or configure an HTTPS reverse proxy. Use `SMS_HTTP_PORT` to change the host port.
 
-To create a self-hosted database configuration card in the app, provide:
+To create a self-hosted archive profile in the app, provide:
 
 - **Service URL:** `https://your-service-domain`, or the service address on a trusted local network.
 - **Access token:** The contents of your local `.secrets/api-token` file. Real tokens are never bundled in source code, images, or examples.
