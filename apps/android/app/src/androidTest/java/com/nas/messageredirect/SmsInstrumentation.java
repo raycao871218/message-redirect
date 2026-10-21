@@ -381,7 +381,9 @@ public final class SmsInstrumentation extends Instrumentation {
                 final android.app.Activity app = activity;
                 int label = tag.equals("en") ? R.string.language_english : tag.equals("ja") ? R.string.language_japanese : tag.isEmpty() ? R.string.language_system : R.string.language_chinese;
                 runOnMainSync(() -> {
-                    view(app.getWindow().getDecorView(), app.getString(R.string.language_button), false).performClick();
+                    android.view.View languageButton = view(app.getWindow().getDecorView(), app.getString(R.string.language_title), true);
+                    check(languageButton instanceof android.widget.Button && ((android.widget.Button) languageButton).getText().toString().equals(AppLanguage.badge(app)), "compact current-language flag and code");
+                    languageButton.performClick();
                     CrayonDialog menu = currentDialog(app);
                     android.view.View option = view(menu.getWindow().getDecorView(), app.getString(label), false);
                     if (option == null) option = view(menu.getWindow().getDecorView(), "✓ " + app.getString(label), false);
@@ -395,7 +397,7 @@ public final class SmsInstrumentation extends Instrumentation {
                     check(localized.getString(R.string.next).equals(tag.equals("en") ? "Next" : tag.equals("ja") ? "次へ" : "下一步"), "selected language renders after recreation");
                     check(view(localized.getWindow().getDecorView(), localized.getString(R.string.manage_profiles), false) != null, "home renders in selected language");
                     if (tag.equals("ja")) {
-                        view(localized.getWindow().getDecorView(), localized.getString(R.string.language_button), false).performClick();
+                        view(localized.getWindow().getDecorView(), localized.getString(R.string.language_title), true).performClick();
                         captureDialog(localized, currentDialog(localized), "language-picker.png");
                     }
                     localized.finish();

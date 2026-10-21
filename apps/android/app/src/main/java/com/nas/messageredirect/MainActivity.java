@@ -104,7 +104,15 @@ public final class MainActivity extends Activity {
         brand.addView(brandMascot, new LinearLayout.LayoutParams(dp(mascotSize), dp(mascotSize)));
         LinearLayout brandText = column(); brandText.setPadding(dp(5), 0, 0, 0);
         TextView name = label(brandText, getString(R.string.app_name), home ? 22 : 20, INK); name.setTypeface(null, Typeface.BOLD);
-        brandCaption = label(brandText, "", 12, MUTED); brand.addView(brandText, new LinearLayout.LayoutParams(0, -2, 1)); root.addView(brand); brand.setVisibility(aboutPage ? View.GONE : View.VISIBLE); space(root, 12);
+        brandCaption = label(brandText, "", 12, MUTED); brand.addView(brandText, new LinearLayout.LayoutParams(0, -2, 1));
+        Button language = new Button(this); language.setText(AppLanguage.badge(this)); language.setTextSize(13); language.setAllCaps(false);
+        language.setTextColor(INK); language.setTypeface(null, Typeface.BOLD); language.setGravity(Gravity.CENTER);
+        language.setMinHeight(0); language.setMinimumHeight(0); language.setMinWidth(0); language.setMinimumWidth(0);
+        language.setPadding(dp(8), 0, dp(8), 0); language.setElevation(0); language.setStateListAnimator(null);
+        language.setBackground(new RippleDrawable(ColorStateList.valueOf(0x20677ea9), sketch(PAPER, EDGE, .8f), null));
+        language.setContentDescription(getString(R.string.language_title)); language.setOnClickListener(view -> showLanguages());
+        LinearLayout.LayoutParams languageLayout = new LinearLayout.LayoutParams(dp(84), dp(48)); languageLayout.leftMargin = dp(8);
+        brand.addView(language, languageLayout); root.addView(brand); brand.setVisibility(aboutPage ? View.GONE : View.VISIBLE); space(root, 12);
         updateMascot(previousMode != null && !previousMode.equals(mascotMode()));
         if (!home) {
             if (eyebrow.startsWith(getString(R.string.setup_wizard))) label(root, eyebrow, 12, BLUE);
@@ -137,7 +145,6 @@ public final class MainActivity extends Activity {
         button(root, step == 3 ? getString(R.string.finish_setup) : getString(R.string.next), true, view -> next());
         if (step > 0) button(root, getString(R.string.back), false, view -> { rememberInputs(); step--; showStep(); });
         if (new SyncConfig(this).setupComplete() || new SyncConfig(this).enabled()) button(root, getString(R.string.cancel_and_return_home), false, view -> { password = ""; showHome(); });
-        if (step == 0) button(root, getString(R.string.language_button), false, view -> showLanguages());
     }
     private void showSettings() {
         wizard = false; editing = false; phoneEditing = false; profilesPage = true; password = "";
@@ -374,7 +381,6 @@ public final class MainActivity extends Activity {
             .setItems(new String[]{getString(R.string.retry_unsent_sms), getString(R.string.check_email_delivery), getString(R.string.usage_guide), getString(R.string.open_app_permissions), getString(R.string.about_gugugu)}, (dialog, which) -> {
                 if (which == 0) uploadNow(); else if (which == 1) resolveUncertain(); else if (which == 2) showUsage(); else if (which == 3) openPermissions(); else showAbout();
             }).setNegativeButton(getString(R.string.close), null).show());
-        button(root, getString(R.string.language_button), false, view -> showLanguages());
         root.addView(notice); refresh();
     }
     private void showLanguages() {

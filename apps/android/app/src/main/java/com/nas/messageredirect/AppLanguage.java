@@ -12,6 +12,12 @@ import java.util.Locale;
 final class AppLanguage {
     static final String[] TAGS = {"", "zh-CN", "en", "ja"};
     private AppLanguage() {}
+    static String badge(Context context) {
+        String language = context.getResources().getConfiguration().locale.getLanguage();
+        if (language.equals("zh")) return context.getString(R.string.language_chinese);
+        if (language.equals("ja")) return context.getString(R.string.language_japanese);
+        return context.getString(R.string.language_english);
+    }
     static String selected(Context context) {
         if (Build.VERSION.SDK_INT >= 33) {
             LocaleList locales = context.getSystemService(LocaleManager.class).getApplicationLocales();

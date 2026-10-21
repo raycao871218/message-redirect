@@ -23,7 +23,7 @@ Self-hosted archiving is an optional advanced feature, primarily for users build
 
 Keep the phone connected to the internet, and new SMS messages will be sent directly to your chosen inbox. Read them by email on the phone you carry, with no self-hosted service or app compilation required. Only new messages are forwarded; your existing inbox is not automatically imported.
 
-The app follows your system language by default, with English, Chinese (Simplified and Traditional), and Japanese support. Use the **语言 / Language / 言語** button on the home screen or the first setup page to choose Follow system, 简体中文, English, or 日本語. Other system languages fall back to English. On Android 13 or later, this choice also syncs with the system's app-language setting.
+The app follows your system language by default, with English, Chinese (Simplified and Traditional), and Japanese support. Use the compact flag button in the top-right corner to choose Follow system, 🇨🇳 CH, 🇺🇸 EN, or 🇯🇵 JP. Other system languages fall back to English. On Android 13 or later, this choice also syncs with the system's app-language setting.
 
 ## App usage
 

@@ -220,7 +220,7 @@
     <string name="new_sms_will_be_forwarded_automatically_unsent_messages_will_be_r">"新しいSMSを自動転送し、未送信のSMSも再試行します。"</string>
     <string name="email_delivery_needs_confirmation">"メールの送信結果の確認が必要です"</string>
     <string name="could_not_connect_or_sign_in_to_your_email_provider_check_your_ne">"メールへの接続または認証に失敗しました。ネットワーク・アカウント・パスワードを確認してください。SMSは後で再試行されます。"</string>
-    <string name="app_name">"GuGuGu（グーグーグー）"</string>
+    <string name="app_name">"GuGuGu"</string>
     <string name="provider_gmail">"Google Gmail"</string>
     <string name="unexpected_error">"操作できませんでした。設定を確認して再試行してください。"</string>
     <string name="status_mail_accepted">"メールサーバーが%1$d通を受け付けました。実際の到着は受信トレイで確認してください。"</string>
