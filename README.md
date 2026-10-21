@@ -3,6 +3,8 @@
 [![简体中文](https://img.shields.io/badge/简体中文-0969da?style=for-the-badge)](README.md)
 [![English](https://img.shields.io/badge/English-0969da?style=for-the-badge)](README.en.md)
 
+![咕咕咕斑鸠鞠躬求偶动画](docs/assets/dove-courtship.gif)
+
 家里有多部手机，出门又不方便全部带上，验证码往往发到了留在家里的那一部。咕咕咕就是替你在家收短信的小信使：在留家的 Android 手机上运行，将短信和验证码投递到你随身手机能查看的邮箱，或存入你自己的归档服务。
 
 项目以家庭内网部署为主，自建后端无需向公网开放。外出时可通过邮件查看转发，或连接家庭 VPN 访问内网归档。

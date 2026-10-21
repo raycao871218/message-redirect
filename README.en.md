@@ -3,6 +3,8 @@
 [![简体中文](https://img.shields.io/badge/简体中文-0969da?style=for-the-badge)](README.md)
 [![English](https://img.shields.io/badge/English-0969da?style=for-the-badge)](README.en.md)
 
+![GuGuGu the spotted dove performing a courtship bow](docs/assets/dove-courtship.gif)
+
 When you have several phones, taking all of them with you is not always practical—and verification codes often arrive on the one you left at home. GuGuGu is a little messenger for that stay-at-home Android phone. It forwards SMS messages and verification codes to an email inbox you can check on the go, or stores them in your own archive service.
 
 The project is designed primarily for deployment on your home network. The self-hosted backend does not need to be exposed to the internet. While away, you can read forwarded messages by email or connect to your home VPN to access the archive.
