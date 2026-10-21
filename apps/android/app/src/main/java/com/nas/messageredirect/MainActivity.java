@@ -106,7 +106,7 @@ public final class MainActivity extends Activity {
         brandCaption = label(brandText, "", 12, MUTED); brand.addView(brandText, new LinearLayout.LayoutParams(0, -2, 1)); root.addView(brand); brand.setVisibility(aboutPage ? View.GONE : View.VISIBLE); space(root, 12);
         updateMascot(previousMode != null && !previousMode.equals(mascotMode()));
         if (!home) {
-            if (eyebrow.startsWith("设置向导")) label(root, eyebrow, 12, BLUE);
+            if (eyebrow.startsWith(getString(R.string.setup_wizard))) label(root, eyebrow, 12, BLUE);
             label(root, title, 24, INK).setTypeface(null, Typeface.BOLD);
             root.addView(new CrayonAccent(this), new LinearLayout.LayoutParams(dp(80), dp(10)));
             if (!subtitle.isEmpty()) label(root, subtitle, 13, MUTED);
@@ -117,14 +117,14 @@ public final class MainActivity extends Activity {
     private String mascotMode() { return wizard || (editing && !phoneEditing) ? mode : new SyncConfig(this).mode(); }
     private void updateMascot(boolean animate) {
         String selected = mascotMode(); brandMascot.setMode(selected, animate);
-        brandCaption.setText(SyncConfig.DATABASE.equals(selected) ? "赛博信使" : "你的小信使");
+        brandCaption.setText(SyncConfig.DATABASE.equals(selected) ? getString(R.string.cyber_messenger) : getString(R.string.your_little_messenger));
     }
     private void showStep() {
         if (new SyncConfig(this).setupComplete()) { showSettings(); return; }
         wizard = true; editing = false; profilesPage = false;
         boolean mail = SyncConfig.EMAIL.equals(mode);
-        String[] titles = {"短信，送到你需要的地方", "标记接收短信的号码", mail ? "连接你的邮箱" : "连接自建数据库", "准备好接收新短信"};
-        page("设置向导  ·  " + (step + 1) + " / 4", titles[step], "");
+        String[] titles = {getString(R.string.your_sms_wherever_you_need_it), getString(R.string.set_the_receiving_phone_numbers), mail ? getString(R.string.connect_your_email) : getString(R.string.connect_your_self_hosted_archive), getString(R.string.ready_for_new_messages)};
+        page(getString(R.string.setup_wizard_9) + (step + 1) + " / 4", titles[step], "");
         LinearLayout progress = new LinearLayout(this);
         for (int i = 0; i < 4; i++) {
             View segment = new View(this); segment.setBackground(sketch(i <= step ? WAX_BLUE : 0xffe5e0d7, i <= step ? BLUE : 0xffc6c0b5, .7f));
@@ -133,57 +133,57 @@ public final class MainActivity extends Activity {
         root.addView(progress); space(root, 22);
         if (step == 0) methodStep(); else if (step == 1) numberStep(); else if (step == 2) { if (mail) emailStep(); else databaseStep(); } else reviewStep();
         root.addView(notice); space(root, 14);
-        button(root, step == 3 ? "完成设置" : "下一步", true, view -> next());
-        if (step > 0) button(root, "上一步", false, view -> { rememberInputs(); step--; showStep(); });
-        if (new SyncConfig(this).setupComplete() || new SyncConfig(this).enabled()) button(root, "取消修改，返回首页", false, view -> { password = ""; showHome(); });
+        button(root, step == 3 ? getString(R.string.finish_setup) : getString(R.string.next), true, view -> next());
+        if (step > 0) button(root, getString(R.string.back), false, view -> { rememberInputs(); step--; showStep(); });
+        if (new SyncConfig(this).setupComplete() || new SyncConfig(this).enabled()) button(root, getString(R.string.cancel_and_return_home), false, view -> { password = ""; showHome(); });
     }
     private void showSettings() {
         wizard = false; editing = false; phoneEditing = false; profilesPage = true; password = "";
-        page("CONFIGURATIONS", "转发配置", "点卡片切换使用的配置。");
+        page("CONFIGURATIONS", getString(R.string.forwarding_profiles), getString(R.string.tap_a_card_to_switch_profiles));
         SyncConfig config = new SyncConfig(this); ProfileStore profiles = new ProfileStore(config);
         try {
             profiles.migrate();
-            if (profiles.list().isEmpty()) label(root, "还没有保存的配置，点击下方新增。", 15, MUTED);
+            if (profiles.list().isEmpty()) label(root, getString(R.string.no_saved_profiles_yet_add_one_below), 15, MUTED);
             for (ProfileStore.Profile profile : profiles.list()) {
                 boolean selected = profile.id().equals(profiles.activeId());
                 LinearLayout item = card(root);
                 item.setBackground(new RippleDrawable(ColorStateList.valueOf(0x18677ea9), sketch(selected ? 0xfffff9e9 : PAPER, selected ? BLUE : EDGE, selected ? 2.8f : 1.5f), null));
-                TextView badge = label(item, selected ? "● 当前使用" : "点选使用", 12, selected ? INK : MUTED);
+                TextView badge = label(item, selected ? getString(R.string.active) : getString(R.string.tap_to_use), 12, selected ? INK : MUTED);
                 if (selected) { badge.setBackground(sketch(0xfff0c8aa, 0xffc48e71, .8f)); badge.setPadding(dp(12), dp(7), dp(12), dp(7)); LinearLayout.LayoutParams badgeLayout = new LinearLayout.LayoutParams(-2, -2); badgeLayout.bottomMargin = dp(8); badge.setLayoutParams(badgeLayout); }
                 LinearLayout heading = new LinearLayout(this); heading.setGravity(Gravity.CENTER_VERTICAL); item.addView(heading);
                 TextView profileTitle = label(heading, profile.name(), 18, INK); profileTitle.setTypeface(null, Typeface.BOLD); profileTitle.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
-                Button edit = button(heading, "编辑配置", false, view -> editProfile(profile.id())); edit.setMinHeight(dp(48)); edit.setPadding(dp(10), dp(8), dp(10), dp(8));
-                LinearLayout.LayoutParams editLayout = new LinearLayout.LayoutParams(dp(88), -2); editLayout.leftMargin = dp(8); edit.setLayoutParams(editLayout);
+                Button edit = button(heading, getString(R.string.edit_profile), false, view -> editProfile(profile.id())); edit.setMinHeight(dp(48)); edit.setPadding(dp(10), dp(8), dp(10), dp(8));
+                LinearLayout.LayoutParams editLayout = new LinearLayout.LayoutParams(dp(112), -2); editLayout.leftMargin = dp(8); edit.setLayoutParams(editLayout);
                 String account = profile.get("smtp_username");
-                label(item, SyncConfig.EMAIL.equals(profile.mode()) ? (account.equals(profile.target()) ? "发件与收件：" + account : "发件：" + account + "\n收件：" + profile.target()) : "服务：" + profile.target(), 13, MUTED);
-                item.setContentDescription("选择配置：" + profile.name()); item.setClickable(true);
+                label(item, SyncConfig.EMAIL.equals(profile.mode()) ? (account.equals(profile.target()) ? getString(R.string.sender_and_recipient) + account : getString(R.string.from) + account + getString(R.string.to) + profile.target()) : getString(R.string.service) + profile.target(), 13, MUTED);
+                item.setContentDescription(getString(R.string.select_profile) + profile.name()); item.setClickable(true);
                 item.setOnClickListener(view -> selectProfile(profile.id()));
             }
-        } catch (IllegalArgumentException error) { notice.setText(error.getMessage()); notice.setVisibility(View.VISIBLE); }
+        } catch (IllegalArgumentException error) { notice.setText(UserError.message(this, error)); notice.setVisibility(View.VISIBLE); }
         LinearLayout actions = new LinearLayout(this); root.addView(actions);
-        Button add = button(actions, "＋ 新增配置", true, view -> showProfileTypes());
-        Button numbers = button(actions, "接收手机号", false, view -> { loadDraft(); showPhoneEditor(); });
+        Button add = button(actions, getString(R.string.add_profile), true, view -> showProfileTypes());
+        Button numbers = button(actions, getString(R.string.receiving_numbers), false, view -> { loadDraft(); showPhoneEditor(); });
         LinearLayout.LayoutParams addLayout = new LinearLayout.LayoutParams(0, -2, 1); addLayout.rightMargin = dp(5); add.setLayoutParams(addLayout);
         LinearLayout.LayoutParams numberLayout = new LinearLayout.LayoutParams(0, -2, 1); numberLayout.leftMargin = dp(5); numbers.setLayoutParams(numberLayout);
-        button(root, "返回首页", false, view -> showHome()); root.addView(notice);
+        button(root, getString(R.string.home), false, view -> showHome()); root.addView(notice);
     }
     private void showProfileTypes() {
         wizard = false; editing = false; profilesPage = true;
-        page("NEW CONFIGURATION", "新增配置", "");
-        button(root, "邮件转发", true, view -> newProfile(SyncConfig.EMAIL));
-        button(root, "自建数据库", false, view -> newProfile(SyncConfig.DATABASE));
-        button(root, "返回配置列表", false, view -> showSettings());
+        page("NEW CONFIGURATION", getString(R.string.add_profile_28), "");
+        button(root, getString(R.string.email_forwarding), true, view -> newProfile(SyncConfig.EMAIL));
+        button(root, getString(R.string.self_hosted_archive), false, view -> newProfile(SyncConfig.DATABASE));
+        button(root, getString(R.string.back_to_profiles), false, view -> showSettings());
         root.addView(notice);
     }
     private void selectProfile(String id) {
         ProfileStore profiles = new ProfileStore(new SyncConfig(this));
         if (id.equals(profiles.activeId())) return;
         try { profiles.select(id); resetJobs(); showSettings(); }
-        catch (IllegalArgumentException error) { say(error.getMessage()); }
+        catch (IllegalArgumentException error) { say(UserError.message(this, error)); }
     }
     private void editProfile(String id) {
         ProfileStore.Profile profile = new ProfileStore(new SyncConfig(this)).find(id);
-        if (profile == null) { say("配置不存在，请刷新后重试"); return; }
+        if (profile == null) { say(getString(R.string.profile_not_found_refresh_and_try_again)); return; }
         loadDraft(); profileId = id; profileName = profile.name(); mode = profile.mode();
         if (SyncConfig.EMAIL.equals(mode)) {
             host = profile.get("smtp_host"); port = String.valueOf(profile.port()); security = profile.get("smtp_security");
@@ -199,19 +199,19 @@ public final class MainActivity extends Activity {
     }
     private void showProfileEditor() {
         wizard = false; profilesPage = false; editing = true; phoneEditing = false;
-        page("CONFIGURATION", profileId.isEmpty() ? "新增配置" : "编辑配置", "");
-        profileNameInput = field(root, "配置名称", profileName, InputType.TYPE_CLASS_TEXT, SyncConfig.EMAIL.equals(mode) ? "例如 Gmail 转发" : "例如 家里的数据库");
+        page("CONFIGURATION", profileId.isEmpty() ? getString(R.string.add_profile_28) : getString(R.string.edit_profile), "");
+        profileNameInput = field(root, getString(R.string.profile_name), profileName, InputType.TYPE_CLASS_TEXT, SyncConfig.EMAIL.equals(mode) ? getString(R.string.for_example_gmail_forwarding) : getString(R.string.for_example_home_archive));
         if (SyncConfig.EMAIL.equals(mode)) emailStep(); else databaseStep();
         root.addView(notice);
-        button(root, "保存配置", true, view -> saveSettings());
-        button(root, "取消，返回配置列表", false, view -> showSettings());
+        button(root, getString(R.string.save_profile), true, view -> saveSettings());
+        button(root, getString(R.string.cancel_and_return_to_profiles), false, view -> showSettings());
     }
     private void showPhoneEditor() {
         wizard = false; profilesPage = false; editing = true; phoneEditing = true;
-        page("PHONE NUMBERS", "接收手机号", "");
+        page("PHONE NUMBERS", getString(R.string.receiving_numbers), "");
         numberStep(); root.addView(notice);
-        button(root, "保存号码", true, view -> saveSettings());
-        button(root, "取消，返回配置列表", false, view -> showSettings());
+        button(root, getString(R.string.save_numbers), true, view -> saveSettings());
+        button(root, getString(R.string.cancel_and_return_to_profiles), false, view -> showSettings());
     }
     private void saveSettings() {
         rememberInputs();
@@ -221,78 +221,78 @@ public final class MainActivity extends Activity {
             else profiles.save(profileId, profileName, mode, url, token, SyncConfig.EMAIL.equals(mode) ? draftSmtp() : null);
             if (phoneEditing || profileId.equals(profiles.activeId())) resetJobs();
             password = ""; showSettings();
-        } catch (IllegalArgumentException error) { say(error.getMessage()); }
+        } catch (IllegalArgumentException error) { say(UserError.message(this, error)); }
     }
     private void methodStep() {
         RadioGroup options = new RadioGroup(this); root.addView(options);
-        RadioButton mail = choice(options, "邮件转发", SyncConfig.EMAIL.equals(mode));
-        choice(options, "自建数据库", !SyncConfig.EMAIL.equals(mode));
+        RadioButton mail = choice(options, getString(R.string.email_forwarding), SyncConfig.EMAIL.equals(mode));
+        choice(options, getString(R.string.self_hosted_archive), !SyncConfig.EMAIL.equals(mode));
         TextView hint = label(root, methodHint(), 13, MUTED);
         options.setOnCheckedChangeListener((group, id) -> { mode = id == mail.getId() ? SyncConfig.EMAIL : SyncConfig.DATABASE; updateMascot(true); hint.setText(methodHint()); });
     }
-    private String methodHint() { return SyncConfig.EMAIL.equals(mode) ? "用邮箱接收转发短信，无需部署服务。" : "通过自建服务保存短信，支持 SQLite、PostgreSQL、MySQL 和 MariaDB。"; }
+    private String methodHint() { return SyncConfig.EMAIL.equals(mode) ? getString(R.string.receive_forwarded_sms_by_email_no_server_deployment_needed) : getString(R.string.archive_sms_on_your_own_service_with_sqlite_postgresql_mysql_or_m); }
     private void numberStep() {
         numberStep(root);
     }
     private void numberStep(LinearLayout container) {
         LinearLayout panel = card(container);
-        button(panel, "从 SIM 卡读取号码", false, view -> requestPhoneNumbers());
-        numberStatus = label(panel, "可授权从 SIM 卡读取；读不到时手动填写。请核对号码是否正确。", 13, MUTED);
-        phone1Input = field(panel, "本机号码 / SIM 1", phone1, InputType.TYPE_CLASS_PHONE, "例如 +86 138 0000 0000");
-        phone2Input = field(panel, "SIM 2 号码 · 可选", phone2, InputType.TYPE_CLASS_PHONE, "双卡手机可填写第二个号码");
-        label(container, "双卡按卡槽填写。号码只标记新短信，历史短信中的号码不会补填。", 13, MUTED);
+        button(panel, getString(R.string.read_numbers_from_sim), false, view -> requestPhoneNumbers());
+        numberStatus = label(panel, getString(R.string.allow_sim_access_or_enter_the_numbers_manually_check_that_the_num), 13, MUTED);
+        phone1Input = field(panel, getString(R.string.this_phone_sim_1), phone1, InputType.TYPE_CLASS_PHONE, getString(R.string.for_example_81_90_1234_5678));
+        phone2Input = field(panel, getString(R.string.sim_2_number_optional), phone2, InputType.TYPE_CLASS_PHONE, getString(R.string.second_number_for_dual_sim_phones));
+        label(container, getString(R.string.enter_each_number_by_sim_slot_numbers_apply_to_new_sms_only_older), 13, MUTED);
     }
     private void emailStep() {
-        LinearLayout provider = card(root); label(provider, "1  选择发件邮箱服务商", 17, INK).setTypeface(null, Typeface.BOLD);
-        Button picker = button(provider, SmtpPresets.matching(host).name + "  ▾", false, null);
-        TextView instructions = label(provider, SmtpPresets.matching(host).hint, 14, MUTED);
-        button(provider, "如何获取邮箱授权码 ↗", false, view -> openHelp(value(hostInput)));
-        LinearLayout account = card(root); label(account, "2  填写发件账号", 17, INK).setTypeface(null, Typeface.BOLD);
-        usernameInput = field(account, "发件邮箱 / SMTP 账号", username, EMAIL_INPUT, "完整邮箱地址");
+        LinearLayout provider = card(root); label(provider, getString(R.string.step_1_choose_your_email_provider), 17, INK).setTypeface(null, Typeface.BOLD);
+        Button picker = button(provider, getString(SmtpPresets.matching(host).name) + "  ▾", false, null);
+        TextView instructions = label(provider, getString(SmtpPresets.matching(host).hint), 14, MUTED);
+        button(provider, getString(R.string.get_an_email_app_password), false, view -> openHelp(value(hostInput)));
+        LinearLayout account = card(root); label(account, getString(R.string.step_2_enter_sender_account), 17, INK).setTypeface(null, Typeface.BOLD);
+        usernameInput = field(account, getString(R.string.sender_email_smtp_account), username, EMAIL_INPUT, getString(R.string.full_email_address));
         ProfileStore.Profile edited = editing ? new ProfileStore(new SyncConfig(this)).find(profileId) : null;
         boolean stored = editing ? edited != null && !edited.get("smtp_password_encrypted").isEmpty() : !new SyncConfig(this).prefs.getString("smtp_password_encrypted", "").isEmpty();
-        passwordInput = field(account, "邮箱授权码 / 应用专用密码", password, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD, stored ? "已保存，留空即可保留" : "按所选邮箱的说明获取后填写");
-        LinearLayout recipient = card(root); label(recipient, "3  短信转发到哪里", 17, INK).setTypeface(null, Typeface.BOLD);
-        toInput = field(recipient, "收件邮箱", to, EMAIL_INPUT, "可以与发件邮箱相同，只填一个地址");
-        label(recipient, "每条新短信一封邮件，标题和正文都会注明接收手机号。", 13, MUTED);
+        passwordInput = field(account, getString(R.string.authorization_code_app_password), password, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD, stored ? getString(R.string.saved_leave_blank_to_keep_it) : getString(R.string.follow_your_email_provider_s_instructions));
+        LinearLayout recipient = card(root); label(recipient, getString(R.string.step_3_where_should_sms_go), 17, INK).setTypeface(null, Typeface.BOLD);
+        toInput = field(recipient, getString(R.string.recipient_email), to, EMAIL_INPUT, getString(R.string.one_address_only_can_be_the_same_as_the_sender));
+        label(recipient, getString(R.string.each_new_sms_becomes_one_email_the_receiving_phone_number_appears), 13, MUTED);
         LinearLayout advanced = card(root), advancedFields = column();
-        Button advancedButton = button(advanced, "服务器与发件人设置  ＋", false, null); advanced.addView(advancedFields);
+        Button advancedButton = button(advanced, getString(R.string.server_and_sender_settings), false, null); advanced.addView(advancedFields);
         advancedFields.setVisibility(host.isEmpty() ? View.VISIBLE : View.GONE);
         advancedButton.setOnClickListener(view -> {
             boolean show = advancedFields.getVisibility() != View.VISIBLE; advancedFields.setVisibility(show ? View.VISIBLE : View.GONE);
-            advancedButton.setText(show ? "收起服务器设置  −" : "服务器与发件人设置  ＋");
+            advancedButton.setText(show ? getString(R.string.hide_server_settings) : getString(R.string.server_and_sender_settings));
         });
-        hostInput = field(advancedFields, "SMTP 服务器", host, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI, "不含协议、端口或路径");
-        portInput = field(advancedFields, "端口", port, InputType.TYPE_CLASS_NUMBER, "465 或 587");
+        hostInput = field(advancedFields, getString(R.string.smtp_server), host, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI, getString(R.string.no_protocol_port_or_path));
+        portInput = field(advancedFields, getString(R.string.port), port, InputType.TYPE_CLASS_NUMBER, getString(R.string.port_465_or_587));
         securityInput = new RadioGroup(this); advancedFields.addView(securityInput);
-        RadioButton ssl = choice(securityInput, "SSL/TLS · 通常为 465", "ssl".equals(security)); sslId = ssl.getId();
-        RadioButton tls = choice(securityInput, "STARTTLS · 通常为 587", "starttls".equals(security));
+        RadioButton ssl = choice(securityInput, getString(R.string.ssl_tls_usually_465), "ssl".equals(security)); sslId = ssl.getId();
+        RadioButton tls = choice(securityInput, getString(R.string.starttls_usually_587), "starttls".equals(security));
         securityInput.setOnCheckedChangeListener((group, id) -> {
             String current = value(portInput); if (current.equals("465") || current.equals("587")) portInput.setText(id == sslId ? "465" : "587");
         });
-        fromInput = field(advancedFields, "发件人地址 · 留空使用账号", from, EMAIL_INPUT, "通常与发件邮箱 / SMTP 账号一致");
+        fromInput = field(advancedFields, getString(R.string.sender_address_blank_uses_account_address), from, EMAIL_INPUT, getString(R.string.usually_the_same_as_the_smtp_account));
         picker.setOnClickListener(view -> {
-            String[] names = new String[SmtpPresets.ALL.length]; for (int i = 0; i < names.length; i++) names[i] = SmtpPresets.ALL[i].name;
-            dialog().setTitle("发件邮箱服务商").setItems(names, (dialog, which) -> {
+            String[] names = new String[SmtpPresets.ALL.length]; for (int i = 0; i < names.length; i++) names[i] = getString(SmtpPresets.ALL[i].name);
+            dialog().setTitle(getString(R.string.email_provider)).setItems(names, (dialog, which) -> {
                 SmtpPresets.Preset preset = SmtpPresets.ALL[which];
                 if (!preset.host.isEmpty()) {
-                    if (!preset.host.equalsIgnoreCase(value(hostInput))) { passwordInput.setText(""); passwordInput.setHint("更换服务商后请重新填写授权码"); }
+                    if (!preset.host.equalsIgnoreCase(value(hostInput))) { passwordInput.setText(""); passwordInput.setHint(getString(R.string.enter_a_new_app_password_after_changing_providers)); }
                     hostInput.setText(preset.host); securityInput.check("ssl".equals(preset.security) ? sslId : tls.getId()); portInput.setText(String.valueOf(preset.port));
                 }
-                picker.setText(preset.name + "  ▾"); instructions.setText(preset.hint);
+                picker.setText(getString(preset.name) + "  ▾"); instructions.setText(getString(preset.hint));
                 advancedFields.setVisibility(preset.host.isEmpty() ? View.VISIBLE : View.GONE);
-                advancedButton.setText(preset.host.isEmpty() ? "收起服务器设置  −" : "服务器与发件人设置  ＋");
-            }).setNegativeButton("取消", null).show();
+                advancedButton.setText(preset.host.isEmpty() ? getString(R.string.hide_server_settings) : getString(R.string.server_and_sender_settings));
+            }).setNegativeButton(getString(R.string.cancel), null).show();
         });
     }
     private void databaseStep() {
         LinearLayout panel = card(root);
-        label(panel, "连接配套服务", 17, INK).setTypeface(null, Typeface.BOLD);
-        label(panel, "先部署配套服务，再扫码或手动填写连接信息。", 13, MUTED);
-        button(panel, "扫码配置", false, view -> { rememberInputs(); startActivityForResult(new Intent(this, PairingScannerActivity.class), 41); });
-        urlInput = field(panel, "转存服务地址", url, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI, "https://sms.example.com");
-        tokenInput = field(panel, "服务访问令牌", token, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD, "与服务端 api_token 一致，至少 32 位");
-        label(panel, "数据库账号和密码只填在服务端。", 13, MUTED);
+        label(panel, getString(R.string.connect_the_companion_service), 17, INK).setTypeface(null, Typeface.BOLD);
+        label(panel, getString(R.string.deploy_the_service_first_then_scan_its_qr_code_or_enter_the_conne), 13, MUTED);
+        button(panel, getString(R.string.scan_configuration), false, view -> { rememberInputs(); startActivityForResult(new Intent(this, PairingScannerActivity.class), 41); });
+        urlInput = field(panel, getString(R.string.archive_service_url), url, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI, "https://sms.example.com");
+        tokenInput = field(panel, getString(R.string.service_access_token), token, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD, getString(R.string.match_the_server_s_api_token_at_least_32_characters));
+        label(panel, getString(R.string.enter_database_credentials_on_the_server_only), 13, MUTED);
     }
     @Override protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
@@ -300,17 +300,17 @@ public final class MainActivity extends Activity {
         if ((!wizard && !editing) || phoneEditing || !SyncConfig.DATABASE.equals(mode)) return;
         try {
             PairingConfig pairing = PairingConfig.parse(data.getStringExtra("pairing"));
-            dialog().setTitle("连接这个小窝？")
-                .setMessage(pairing.name + "\n" + pairing.url + "\n\n确认后只填入设置页面，保存配置后才会生效。访问密钥已包含在配对码中。")
-                .setPositiveButton("填入配置", (dialog, which) -> {
+            dialog().setTitle(getString(R.string.connect_to_this_nest))
+                .setMessage(pairing.name + "\n" + pairing.url + getString(R.string.confirming_only_fills_in_the_form_save_the_profile_to_apply_it_th))
+                .setPositiveButton(getString(R.string.fill_in_settings), (dialog, which) -> {
                     url = pairing.url; token = pairing.token; urlInput.setText(url); tokenInput.setText(token);
                     if (editing && profileId.isEmpty() && value(profileNameInput).isEmpty()) { profileName = pairing.name; profileNameInput.setText(profileName); }
-                    say("已填入服务地址和密钥，请核对后保存配置");
-                }).setNegativeButton("取消", null).show();
-        } catch (IllegalArgumentException error) { say(error.getMessage()); }
+                    say(getString(R.string.url_and_token_filled_in_check_the_details_and_save_the_profile));
+                }).setNegativeButton(getString(R.string.cancel), null).show();
+        } catch (IllegalArgumentException error) { say(UserError.message(this, error)); }
     }
     private SmtpProfile draftSmtp() {
-        int number; try { number = Integer.parseInt(port); } catch (NumberFormatException error) { throw new IllegalArgumentException("SMTP 端口需为 1–65535"); }
+        int number; try { number = Integer.parseInt(port); } catch (NumberFormatException error) { throw new UserError(R.string.smtp_port_must_be_between_1_and_65535); }
         String secret = editing ? new ProfileStore(new SyncConfig(this)).password(profileId, host, username, password) : new SyncConfig(this).smtpPassword(host, username, password, true);
         SmtpProfile smtp = new SmtpProfile(host, number, security, username, secret, from.isEmpty() ? username : from, to); smtp.validate(); return smtp;
     }
@@ -319,99 +319,99 @@ public final class MainActivity extends Activity {
         try {
             if (step == 1) {
                 phone1 = SyncConfig.normalizePhone(phone1); phone2 = SyncConfig.normalizePhone(phone2);
-                if (phone1.isEmpty() && phone2.isEmpty()) throw new IllegalArgumentException("请填写接收短信的本机号码");
-                if (!phone1.isEmpty() && phone1.equals(phone2)) throw new IllegalArgumentException("两张 SIM 卡请填写不同号码");
+                if (phone1.isEmpty() && phone2.isEmpty()) throw new UserError(R.string.enter_the_phone_number_that_receives_sms);
+                if (!phone1.isEmpty() && phone1.equals(phone2)) throw new UserError(R.string.enter_different_numbers_for_the_two_sims);
             }
             if (step == 2) {
                 if (SyncConfig.EMAIL.equals(mode)) draftSmtp();
                 else {
                     java.net.URI uri = new java.net.URI(url);
-                    if (!("https".equals(uri.getScheme()) || "http".equals(uri.getScheme())) || uri.getHost() == null || uri.getUserInfo() != null || uri.getQuery() != null || uri.getFragment() != null) throw new IllegalArgumentException("请填写完整的 HTTP/HTTPS 配套服务地址");
-                    if (token.length() < 32) throw new IllegalArgumentException("访问令牌至少需要 32 位，请与服务端配置核对");
+                    if (!("https".equals(uri.getScheme()) || "http".equals(uri.getScheme())) || uri.getHost() == null || uri.getUserInfo() != null || uri.getQuery() != null || uri.getFragment() != null) throw new UserError(R.string.enter_the_full_http_https_url_of_the_companion_service);
+                    if (token.length() < 32) throw new UserError(R.string.access_tokens_need_at_least_32_characters_check_the_server_settin);
                 }
             }
             if (step < 3) { step++; showStep(); return; }
-            if (turnOn && !allowed()) throw new IllegalArgumentException("请先授权接收短信，或取消勾选自动转发后保存");
+            if (turnOn && !allowed()) throw new UserError(R.string.allow_sms_access_first_or_disable_automatic_forwarding_before_sav);
             new SyncConfig(this).completeSetup(url, token, mode, SyncConfig.EMAIL.equals(mode) ? draftSmtp() : null, phone1, phone2, turnOn);
             password = ""; resetJobs(); showHome();
-        } catch (IllegalArgumentException error) { say(error.getMessage()); }
-        catch (java.net.URISyntaxException error) { say("转存服务地址格式不正确"); }
+        } catch (IllegalArgumentException error) { say(UserError.message(this, error)); }
+        catch (java.net.URISyntaxException error) { say(getString(R.string.invalid_archive_service_url)); }
     }
     private void reviewStep() {
-        LinearLayout review = card(root); label(review, SyncConfig.EMAIL.equals(mode) ? "邮件转发" : "自建数据库", 18, INK).setTypeface(null, Typeface.BOLD);
+        LinearLayout review = card(root); label(review, SyncConfig.EMAIL.equals(mode) ? getString(R.string.email_forwarding) : getString(R.string.self_hosted_archive), 18, INK).setTypeface(null, Typeface.BOLD);
         label(review, (phone1.isEmpty() ? "" : "SIM 1  " + phone1) + (phone2.isEmpty() ? "" : (phone1.isEmpty() ? "" : "\n") + "SIM 2  " + phone2), 15, MUTED);
-        label(review, SyncConfig.EMAIL.equals(mode) ? "发件邮箱  " + username + "\n收件邮箱  " + to : "转存服务  " + url, 14, MUTED);
-        LinearLayout permissions = card(root); label(permissions, "接收短信权限", 17, INK).setTypeface(null, Typeface.BOLD);
-        permissionStatus = label(permissions, allowed() ? "已授权，可以接收新短信" : "尚未授权，开启后才能转发新短信", 14, MUTED);
-        button(permissions, "授权接收短信", false, view -> {
-            if (allowed()) { permissionStatus.setText("已授权，可以接收新短信"); return; }
+        label(review, SyncConfig.EMAIL.equals(mode) ? getString(R.string.sender_email) + username + getString(R.string.recipient_email_92) + to : getString(R.string.archive_service) + url, 14, MUTED);
+        LinearLayout permissions = card(root); label(permissions, getString(R.string.sms_permission), 17, INK).setTypeface(null, Typeface.BOLD);
+        permissionStatus = label(permissions, allowed() ? getString(R.string.permission_granted_ready_for_new_sms) : getString(R.string.permission_needed_to_forward_new_sms), 14, MUTED);
+        button(permissions, getString(R.string.allow_sms_access), false, view -> {
+            if (allowed()) { permissionStatus.setText(getString(R.string.permission_granted_ready_for_new_sms)); return; }
             requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, 1);
         });
-        button(permissions, "打开系统权限设置", false, view -> openPermissions());
-        enableInput = new CheckBox(this); enableInput.setText("完成后开启自动转发"); enableInput.setTextColor(INK); enableInput.setTextSize(15); enableInput.setChecked(turnOn); root.addView(enableInput);
-        label(root, "开启后自动转发新短信，不会导入历史收件箱。若转发延迟，可在系统电池设置中允许本应用后台运行。", 13, MUTED);
+        button(permissions, getString(R.string.open_app_permissions), false, view -> openPermissions());
+        enableInput = new CheckBox(this); enableInput.setText(getString(R.string.enable_automatic_forwarding_after_setup)); enableInput.setTextColor(INK); enableInput.setTextSize(15); enableInput.setChecked(turnOn); root.addView(enableInput);
+        label(root, getString(R.string.only_new_sms_will_be_forwarded_your_existing_inbox_is_not_importe), 13, MUTED);
     }
     private void showHome() {
         wizard = false; editing = false; profilesPage = false; phoneEditing = false; password = ""; SyncConfig c = new SyncConfig(this);
         if (c.setupComplete()) { try { new ProfileStore(c).migrate(); } catch (IllegalArgumentException ignored) { /* Cards report a retryable migration error. */ } }
         page("MESSAGE REDIRECT", "", "");
-        LinearLayout state = card(root); label(state, "转发状态", 13, MUTED);
+        LinearLayout state = card(root); label(state, getString(R.string.forwarding_status), 13, MUTED);
         LinearLayout statusLine = new LinearLayout(this); statusLine.setGravity(Gravity.CENTER_VERTICAL); state.addView(statusLine);
         homeState = label(statusLine, "", 23, BLUE); homeState.setTypeface(null, Typeface.BOLD); homeState.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
-        Button toggle = button(statusLine, c.enabled() ? "暂停" : "开启", !c.enabled(), view -> toggle());
+        Button toggle = button(statusLine, c.enabled() ? getString(R.string.pause) : getString(R.string.enable), !c.enabled(), view -> toggle());
         LinearLayout.LayoutParams toggleLayout = new LinearLayout.LayoutParams(dp(80), -2); toggleLayout.leftMargin = dp(8); toggle.setLayoutParams(toggleLayout);
         homeDetails = label(state, "", 13, MUTED); space(state, 4); homeCounts = label(state, "", 13, MUTED);
         ProfileStore.Profile active = new ProfileStore(c).active();
-        LinearLayout destination = card(root); label(destination, "转发去向", 13, MUTED); label(destination, active == null ? c.modeLabel() : active.name(), 18, INK).setTypeface(null, Typeface.BOLD);
-        label(destination, c.target().isEmpty() ? "尚未配置目标" : c.target(), 15, MUTED);
-        label(destination, c.phoneSummary().isEmpty() ? "接收手机号尚未设置" : c.phoneSummary(), 14, MUTED);
-        button(root, c.setupComplete() ? "管理转发配置" : "完成设置向导", true, view -> {
+        LinearLayout destination = card(root); label(destination, getString(R.string.destination), 13, MUTED); label(destination, active == null ? c.modeLabel() : active.name(), 18, INK).setTypeface(null, Typeface.BOLD);
+        label(destination, c.target().isEmpty() ? getString(R.string.no_destination_configured) : c.target(), 15, MUTED);
+        label(destination, c.phoneSummary().isEmpty() ? getString(R.string.receiving_phone_numbers_not_set) : c.phoneSummary(), 14, MUTED);
+        button(root, c.setupComplete() ? getString(R.string.manage_profiles) : getString(R.string.complete_setup), true, view -> {
             loadDraft(); if (c.setupComplete()) showSettings(); else { step = 0; showStep(); }
         });
-        button(root, "更多操作", false, view -> dialog().setTitle("更多操作")
-            .setItems(new String[]{"重试尚未发送的短信", "检查邮件是否收到", "使用说明", "打开系统权限设置", "关于咕咕咕"}, (dialog, which) -> {
+        button(root, getString(R.string.more_actions), false, view -> dialog().setTitle(getString(R.string.more_actions))
+            .setItems(new String[]{getString(R.string.retry_unsent_sms), getString(R.string.check_email_delivery), getString(R.string.usage_guide), getString(R.string.open_app_permissions), getString(R.string.about_gugugu)}, (dialog, which) -> {
                 if (which == 0) uploadNow(); else if (which == 1) resolveUncertain(); else if (which == 2) showUsage(); else if (which == 3) openPermissions(); else showAbout();
-            }).setNegativeButton("关闭", null).show());
+            }).setNegativeButton(getString(R.string.close), null).show());
         root.addView(notice); refresh();
     }
     private void showAbout() {
         wizard = false; editing = false; profilesPage = false; phoneEditing = false; password = "";
-        page("ABOUT", "关于咕咕咕", "");
+        page("ABOUT", getString(R.string.about_gugugu), "");
         LinearLayout portrait = column(); portrait.setGravity(Gravity.CENTER); space(portrait, 12);
         MascotView pigeon = new MascotView(this); pigeon.setMode(new SyncConfig(this).mode(), false);
         portrait.addView(pigeon, new LinearLayout.LayoutParams(dp(210), dp(210)));
-        TextView greeting = label(portrait, "咕咕，把消息送到。", 16, MUTED); greeting.setGravity(Gravity.CENTER);
+        TextView greeting = label(portrait, getString(R.string.coo_coo_your_message_is_on_its_way), 16, MUTED); greeting.setGravity(Gravity.CENTER);
         space(portrait, 22); root.addView(portrait);
         LinearLayout version = card(root);
         try {
             android.content.pm.PackageInfo installed = getPackageManager().getPackageInfo(getPackageName(), 0);
             long build = Build.VERSION.SDK_INT >= 28 ? installed.getLongVersionCode() : installed.versionCode;
-            label(version, "版本号", 13, MUTED);
+            label(version, getString(R.string.version), 13, MUTED);
             label(version, installed.versionName, 24, INK).setTypeface(null, Typeface.BOLD);
-            label(version, "构建号  " + build, 13, MUTED);
+            label(version, getString(R.string.build) + build, 13, MUTED);
         } catch (PackageManager.NameNotFoundException error) {
-            label(version, "暂时无法读取版本信息", 16, INK);
+            label(version, getString(R.string.version_information_is_unavailable), 16, INK);
         }
-        button(root, "返回首页", false, view -> showHome());
+        button(root, getString(R.string.home), false, view -> showHome());
     }
     private void showUsage() {
-        dialog().setTitle("使用说明")
-            .setMessage("自动转发\n开启后自动发送新短信；暂停时，新短信会留在手机，重新开启后继续发送。不会自动导入历史收件箱。\n\n发送失败怎么办\n一般网络错误会稍后自动重试，也可以点“重试尚未发送的短信”。\n\n检查邮件是否收到\n发送时连接中断，App 可能无法判断邮件是否寄出。为避免重复，这类邮件不自动重发。请先检查收件箱和垃圾箱，再选择“已收到”或“没收到，重发”。\n\n切换配置\n点卡片切换，点“编辑配置”修改内容。已经开始发送的短信保留原收件邮箱或服务地址，切回对应配置后才能继续发送。\n\n后台运行\n若转发延迟，可在系统电池设置中允许本应用后台运行。强行停止应用后，需要重新打开。")
-            .setPositiveButton("知道了", null).show();
+        dialog().setTitle(getString(R.string.usage_guide))
+            .setMessage(getString(R.string.automatic_forwarding_new_sms_is_sent_automatically_when_enabled_w))
+            .setPositiveButton(getString(R.string.got_it), null).show();
     }
     private void toggle() {
         SyncConfig c = new SyncConfig(this);
         if (!c.enabled() && !c.setupComplete()) { loadDraft(); step = 0; showStep(); return; }
-        if (!c.enabled() && !allowed()) { say("请先在系统设置中授予短信权限，再开启自动转发"); openPermissions(); return; }
+        if (!c.enabled() && !allowed()) { say(getString(R.string.grant_sms_permission_in_system_settings_before_enabling_forwardin)); openPermissions(); return; }
         try { c.save(c.url(), c.token(), !c.enabled(), c.mode(), SyncConfig.EMAIL.equals(c.mode()) ? c.smtp() : null); resetJobs(); showHome(); }
-        catch (IllegalArgumentException error) { say(error.getMessage()); }
+        catch (IllegalArgumentException error) { say(UserError.message(this, error)); }
     }
     private void resetJobs() {
         android.app.job.JobScheduler jobs = (android.app.job.JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
         jobs.cancel(UploadJobService.IMMEDIATE); jobs.cancel(UploadJobService.PERIODIC); UploadJobService.schedule(this);
     }
     private void refresh() {
-        if (wizard || editing || profilesPage || aboutPage) { if (permissionStatus != null) permissionStatus.setText(allowed() ? "已授权，可以接收新短信" : "尚未授权，开启后才能转发新短信"); return; }
+        if (wizard || editing || profilesPage || aboutPage) { if (permissionStatus != null) permissionStatus.setText(allowed() ? getString(R.string.permission_granted_ready_for_new_sms) : getString(R.string.permission_needed_to_forward_new_sms)); return; }
         worker.execute(() -> {
             try (SmsStore store = new SmsStore(this)) {
                 if (DeliveryLock.LOCK.tryLock()) { try { store.recoverInFlightEmails(); } finally { DeliveryLock.LOCK.unlock(); } }
@@ -419,15 +419,18 @@ public final class MainActivity extends Activity {
                 long sending = Math.max(0, unfinishedMail - review), other = Math.max(0, pending - eligible - unfinishedMail);
                 runOnUiThread(() -> {
                     if (isDestroyed() || wizard || editing || profilesPage || aboutPage) return;
-                    homeState.setText(!allowed() ? "需要短信权限" : !c.enabled() ? "已暂停" : "已开启");
-                    homeDetails.setText(!allowed() ? "请到“更多操作 → 打开系统权限设置”授予短信权限。" : review > 0 ? "有邮件没能确认是否寄出。请到“更多操作 → 检查邮件是否收到”核对。" : !c.enabled() ? "新短信会保留在手机，开启后继续发送。" : c.status());
-                    homeCounts.setText("等待发送：" + eligible + " 条" + (sending > 0 ? "\n正在发送邮件：" + sending + " 封" : "") + (review > 0 ? "\n请检查收件箱：" + review + " 封" : "") + (other > 0 ? "\n其他配置未发送：" + other + " 条（切回原配置后发送）" : ""));
+                    homeState.setText(!allowed() ? getString(R.string.sms_permission_needed) : !c.enabled() ? getString(R.string.paused) : getString(R.string.enabled));
+                    homeDetails.setText(!allowed() ? getString(R.string.go_to_more_actions_open_app_permissions_to_allow_sms_access) : review > 0 ? getString(R.string.some_emails_have_an_uncertain_delivery_status_go_to_more_actions) : !c.enabled() ? getString(R.string.new_sms_stays_on_this_phone_until_forwarding_is_enabled) : c.status());
+                    homeCounts.setText(quantity(R.plurals.queue_pending, eligible)
+                        + (sending > 0 ? "\n" + quantity(R.plurals.queue_sending, sending) : "")
+                        + (review > 0 ? "\n" + quantity(R.plurals.queue_review, review) : "")
+                        + (other > 0 ? "\n" + quantity(R.plurals.queue_other, other) : ""));
                 });
             }
         });
     }
     private void uploadNow() {
-        if (!new SyncConfig(this).enabled()) { say("请先开启自动转发，再重试发送"); return; } say("正在重试当前配置下尚未发送的短信…");
+        if (!new SyncConfig(this).enabled()) { say(getString(R.string.enable_forwarding_before_retrying)); return; } say(getString(R.string.retrying_unsent_sms_in_the_current_profile));
         worker.execute(() -> {
             boolean retry = SmsUploader.upload(getApplicationContext()); if (retry) UploadJobService.schedule(getApplicationContext());
             runOnUiThread(() -> { if (!isDestroyed() && !wizard && !editing && !profilesPage && !aboutPage) { say(new SyncConfig(this).status()); refresh(); } });
@@ -438,32 +441,32 @@ public final class MainActivity extends Activity {
             java.util.List<SmsStore.Message> rows; try (SmsStore store = new SmsStore(this)) { rows = store.uncertain(); }
             runOnUiThread(() -> {
                 if (isDestroyed() || wizard || editing || profilesPage || aboutPage) return;
-                if (rows.isEmpty()) { say("目前没有需要你检查的邮件，正常转发无需手动操作。"); return; }
+                if (rows.isEmpty()) { say(getString(R.string.no_emails_need_checking_normal_forwarding_needs_no_manual_action)); return; }
                 SmsStore.Message row = rows.get(0);
-                dialog().setTitle("这封邮件收到了吗？")
-                    .setMessage("发送时连接中断，邮件可能已经寄出。为避免重复，App 暂时不会重发这封邮件。\n\n请检查以下邮箱的收件箱和垃圾箱：\n" + row.target + "\n\n短信发送号码：" + row.sender + "\n短信接收时间：" + DateFormat.getDateTimeInstance().format(new java.util.Date(row.capturedAt)) + "\n\n还需检查 " + rows.size() + " 封。已收到就标记完成；没有收到再选择重发。")
-                    .setPositiveButton("已收到", (dialog, which) -> resolveEmail(row.id, false))
-                    .setNeutralButton("没收到，重发", (dialog, which) -> dialog().setTitle("再发一次这封邮件？")
-                        .setMessage("请先确认收件箱和垃圾箱都没有这封邮件。重发后，原收件人可能收到重复邮件。")
-                        .setPositiveButton("重发到原邮箱", (d, w) -> resolveEmail(row.id, true)).setNegativeButton("先不重发", null).show())
-                    .setNegativeButton("稍后检查", null).show();
+                dialog().setTitle(getString(R.string.did_this_email_arrive))
+                    .setMessage(getString(R.string.the_connection_dropped_while_sending_so_this_email_may_already_ha) + row.target + getString(R.string.sms_sender) + row.sender + getString(R.string.sms_received_at) + DateFormat.getDateTimeInstance().format(new java.util.Date(row.capturedAt)) + getString(R.string.still_to_check) + rows.size() + getString(R.string.emails_mark_as_received_if_it_arrived_otherwise_choose_resend))
+                    .setPositiveButton(getString(R.string.received), (dialog, which) -> resolveEmail(row.id, false))
+                    .setNeutralButton(getString(R.string.not_received_resend), (dialog, which) -> dialog().setTitle(getString(R.string.send_this_email_again))
+                        .setMessage(getString(R.string.first_confirm_that_the_email_is_in_neither_your_inbox_nor_spam_fo))
+                        .setPositiveButton(getString(R.string.resend_to_original_inbox), (d, w) -> resolveEmail(row.id, true)).setNegativeButton(getString(R.string.do_not_resend_yet), null).show())
+                    .setNegativeButton(getString(R.string.check_later), null).show();
             });
         });
     }
     private void resolveEmail(String id, boolean retry) {
         worker.execute(() -> {
-            String outcome;
-            if (!DeliveryLock.LOCK.tryLock()) outcome = "正在发送，请稍后处理";
+            int outcome;
+            if (!DeliveryLock.LOCK.tryLock()) outcome = R.string.sending_in_progress_try_again_later;
             else {
                 try (SmsStore store = new SmsStore(this)) {
                     if (retry) store.retryEmail(id); else store.markUploaded(java.util.Collections.singletonList(id));
-                    outcome = retry ? "已安排重发。请保持自动转发开启，并选择原收件邮箱的配置。" : "已标记为收到，这封邮件不会再次发送。";
+                    outcome = retry ? R.string.resend_scheduled_keep_forwarding_enabled_and_select_the_original : R.string.marked_as_received_this_email_will_not_be_sent_again;
                     new SyncConfig(this).status(outcome);
                 }
-                catch (Exception error) { outcome = "记录状态已改变，请刷新后重试"; }
+                catch (Exception error) { outcome = R.string.the_record_changed_refresh_and_try_again; }
                 finally { DeliveryLock.LOCK.unlock(); }
             }
-            if (retry) UploadJobService.schedule(this); final String message = outcome;
+            if (retry) UploadJobService.schedule(this); final String message = getString(outcome);
             runOnUiThread(() -> { if (!isDestroyed() && !wizard && !editing && !profilesPage && !aboutPage) { say(message); refresh(); } });
         });
     }
@@ -481,20 +484,20 @@ public final class MainActivity extends Activity {
             // Keep manual entries; filling SIM metadata never silently replaces a user's number.
             if (value(phone1Input).isEmpty()) phone1Input.setText(numbers[0]);
             if (value(phone2Input).isEmpty()) phone2Input.setText(numbers[1]);
-            numberStatus.setText(numbers[0].isEmpty() && numbers[1].isEmpty() ? "系统未提供本机号码，请手动填写。拒绝号码权限也不影响手动设置。" : "已按卡槽读取号码并填入空白项，请核对。没有读出的号码仍可手动填写。");
-        } catch (SecurityException error) { numberStatus.setText("未获得读取号码的权限，请手动填写；也可以在系统权限设置中授权。"); }
-        catch (UnsupportedOperationException | IllegalStateException error) { numberStatus.setText("此设备暂时无法读取 SIM 号码，请手动填写。"); }
+            numberStatus.setText(numbers[0].isEmpty() && numbers[1].isEmpty() ? getString(R.string.the_system_did_not_provide_a_number_enter_it_manually_sim_access) : getString(R.string.sim_numbers_filled_into_empty_fields_check_them_and_enter_any_mis));
+        } catch (SecurityException error) { numberStatus.setText(getString(R.string.sim_access_was_not_granted_enter_the_numbers_manually_or_allow_ac)); }
+        catch (UnsupportedOperationException | IllegalStateException error) { numberStatus.setText(getString(R.string.sim_numbers_cannot_be_read_on_this_device_enter_them_manually)); }
     }
     private void openPermissions() { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))); }
     private void openHelp(String host) {
         String help = SmtpPresets.matching(host).help;
-        if (help.isEmpty()) { say("自定义邮箱请向服务商获取 SMTP 参数和授权说明"); return; }
-        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(help))); } catch (android.content.ActivityNotFoundException error) { say("没有可打开网页的浏览器"); }
+        if (help.isEmpty()) { say(getString(R.string.ask_your_email_provider_for_smtp_settings_and_authorization_instr)); return; }
+        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(help))); } catch (android.content.ActivityNotFoundException error) { say(getString(R.string.no_browser_is_available_to_open_this_page)); }
     }
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(code, permissions, grants);
         if (code == 3) { readPhoneNumbers(); return; }
-        refresh(); if (!allowed()) say("尚未授予短信权限。若系统不再弹窗，请打开系统权限设置。");
+        refresh(); if (!allowed()) say(getString(R.string.sms_permission_was_not_granted_if_the_prompt_no_longer_appears_op));
     }
     @Override protected void onResume() {
         super.onResume(); IntentFilter filter = new IntentFilter(SmsStore.CHANGED);
@@ -517,6 +520,9 @@ public final class MainActivity extends Activity {
             if (activeDialog != null && activeDialog != dialog) activeDialog.dismiss();
             activeDialog = dialog;
         });
+    }
+    private String quantity(int resource, long count) {
+        return getResources().getQuantityString(resource, (int) Math.min(count, Integer.MAX_VALUE), count);
     }
     private String value(EditText input) { return input.getText().toString().trim(); }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

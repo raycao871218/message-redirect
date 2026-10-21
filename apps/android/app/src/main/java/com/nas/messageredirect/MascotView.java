@@ -17,7 +17,7 @@ final class MascotView extends ImageView {
         mode = next; animate().cancel();
         boolean cyber = SyncConfig.DATABASE.equals(mode);
         setImageResource(cyber ? R.drawable.messenger_mascot_cyber : R.drawable.messenger_mascot);
-        setContentDescription(cyber ? "赛博斑鸠 · 自建数据库" : "斑鸠 · 邮件转发");
+        setContentDescription(cyber ? getContext().getString(R.string.cyber_dove_self_hosted_archive) : getContext().getString(R.string.spotted_dove_email_forwarding));
         setScaleX(1); setScaleY(1); setRotation(0);
         if (animateChange && (Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled())) {
             setScaleX(.88f); setScaleY(.88f); setRotation(cyber ? -5 : 5);

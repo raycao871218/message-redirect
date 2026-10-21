@@ -8,12 +8,13 @@ import java.util.UUID;
 final class SyncConfig {
     static final String DATABASE = "database", EMAIL = "email";
     final SharedPreferences prefs;
+    final Context context;
     SyncConfig(Context context) { this(context, "sync"); }
-    SyncConfig(Context context, String name) { prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE); }
+    SyncConfig(Context context, String name) { this.context = context; prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE); }
     String url() { return prefs.getString("url", ""); }
     String token() { return prefs.getString("token", ""); }
     String mode() { return EMAIL.equals(prefs.getString("delivery_mode", DATABASE)) ? EMAIL : DATABASE; }
-    String modeLabel() { return EMAIL.equals(mode()) ? "邮件转发" : "自建数据库"; }
+    String modeLabel() { return EMAIL.equals(mode()) ? context.getString(R.string.email_forwarding) : context.getString(R.string.self_hosted_archive); }
     String target() { return EMAIL.equals(mode()) ? prefs.getString("smtp_to", "") : url(); }
     boolean setupComplete() { return prefs.getBoolean("setup_complete", false); }
     String phone(int slot) { return prefs.getString(slot == 1 ? "receiving_phone_2" : "receiving_phone_1", ""); }
@@ -29,13 +30,13 @@ final class SyncConfig {
     }
     void completeSetup(String address, String token, String mode, SmtpProfile smtp, String first, String second, boolean enabled) {
         first = normalizePhone(first); second = normalizePhone(second);
-        if (first.isEmpty() && second.isEmpty()) throw new IllegalArgumentException("请填写接收短信的本机号码");
-        if (!first.isEmpty() && first.equals(second)) throw new IllegalArgumentException("两张 SIM 卡请填写不同号码");
+        if (first.isEmpty() && second.isEmpty()) throw new UserError(R.string.enter_the_phone_number_that_receives_sms);
+        if (!first.isEmpty() && first.equals(second)) throw new UserError(R.string.enter_different_numbers_for_the_two_sims);
         saveInternal(address, token, enabled, mode, smtp, first, second);
     }
     static String normalizePhone(String phone) {
         String clean = phone.trim().replace(" ", "").replace("-", "").replace("(", "").replace(")", "");
-        if (!clean.isEmpty() && !clean.matches("\\+?[0-9]{5,20}")) throw new IllegalArgumentException("手机号需为 5–20 位数字，可带国际区号 +");
+        if (!clean.isEmpty() && !clean.matches("\\+?[0-9]{5,20}")) throw new UserError(R.string.phone_numbers_need_5_20_digits_optionally_starting_with);
         return clean;
     }
     boolean enabled() { return prefs.getBoolean("enabled", false) && (EMAIL.equals(mode()) || !token().isEmpty()); }
@@ -51,7 +52,7 @@ final class SyncConfig {
         boolean unchanged = host.trim().equalsIgnoreCase(prefs.getString("smtp_host", "")) && username.trim().equals(prefs.getString("smtp_username", ""));
         if (unchanged) return SecretStore.decrypt(prefs.getString("smtp_password_encrypted", ""));
         if (enabled && !prefs.getString("smtp_password_encrypted", "").isEmpty())
-            throw new IllegalArgumentException("SMTP 服务器或账号已更换，请重新填写密码／授权码");
+            throw new UserError(R.string.smtp_server_or_account_changed_enter_the_password_or_authorizatio);
         return "";
     }
     synchronized String deviceId() {
@@ -68,22 +69,22 @@ final class SyncConfig {
     private void saveInternal(String address, String token, boolean enabled, String mode, SmtpProfile smtp, String first, String second) {
         try {
             // A status refresh may briefly recover interrupted rows; allow that transaction to finish.
-            if (!DeliveryLock.LOCK.tryLock(200, java.util.concurrent.TimeUnit.MILLISECONDS)) throw new IllegalArgumentException("正在发送短信，请稍后再修改配置");
+            if (!DeliveryLock.LOCK.tryLock(200, java.util.concurrent.TimeUnit.MILLISECONDS)) throw new UserError(R.string.sms_is_being_sent_change_settings_later);
         } catch (InterruptedException error) {
-            Thread.currentThread().interrupt(); throw new IllegalArgumentException("保存已中断，请重试");
+            Thread.currentThread().interrupt(); throw new UserError(R.string.saving_interrupted_try_again);
         }
         try {
-            if (!DATABASE.equals(mode) && !EMAIL.equals(mode)) throw new IllegalArgumentException("请选择转存方式");
+            if (!DATABASE.equals(mode) && !EMAIL.equals(mode)) throw new UserError(R.string.choose_a_forwarding_method);
             address = address.trim(); token = token.trim();
             if (DATABASE.equals(mode)) {
                 URI uri;
-                try { uri = new URI(address); } catch (Exception e) { throw new IllegalArgumentException("接口地址格式不正确"); }
+                try { uri = new URI(address); } catch (Exception e) { throw new UserError(R.string.invalid_api_url); }
                 if (!("http".equals(uri.getScheme()) || "https".equals(uri.getScheme())) || uri.getHost() == null || uri.getUserInfo() != null || uri.getQuery() != null || uri.getFragment() != null)
-                    throw new IllegalArgumentException("请输入完整的 HTTP/HTTPS 服务地址");
-                if (enabled && token.length() < 32) throw new IllegalArgumentException("请填写服务端访问令牌（至少 32 位）");
+                    throw new UserError(R.string.enter_a_full_http_https_service_url);
+                if (enabled && token.length() < 32) throw new UserError(R.string.enter_the_server_access_token_at_least_32_characters);
             }
             while (address.endsWith("/")) address = address.substring(0, address.length() - 1);
-            if (EMAIL.equals(mode) && enabled) { if (smtp == null) throw new IllegalArgumentException("请填写 SMTP 配置"); smtp.validate(); }
+            if (EMAIL.equals(mode) && enabled) { if (smtp == null) throw new UserError(R.string.enter_smtp_settings); smtp.validate(); }
             android.content.SharedPreferences.Editor editor = prefs.edit().putString("url", address).putString("token", token)
                 .putBoolean("enabled", enabled).putString("delivery_mode", mode);
             if (smtp != null) editor.putString("smtp_host", smtp.host).putInt("smtp_port", smtp.port)
@@ -91,16 +92,10 @@ final class SyncConfig {
                 .putString("smtp_password_encrypted", SecretStore.encrypt(smtp.password))
                 .putString("smtp_from", smtp.from).putString("smtp_to", smtp.to);
             if (first != null) editor.putString("receiving_phone_1", first).putString("receiving_phone_2", second).putBoolean("setup_complete", true);
-            if (!editor.commit()) throw new IllegalArgumentException("配置保存失败，请重试");
+            if (!editor.commit()) throw new UserError(R.string.could_not_save_settings_try_again);
         } finally { DeliveryLock.LOCK.unlock(); }
     }
-    String status() {
-        String status = prefs.getString("status", "收到新短信后会自动转发。");
-        // Show clearer wording for statuses saved by an earlier version, without rewriting settings.
-        if (status.equals("尚未发送") || status.equals("已切换配置，等待新短信或待处理记录")) return "收到新短信后会自动转发，尚未发送的短信会继续尝试。";
-        if (status.startsWith("邮件发送结果待确认")) return "有邮件没能确认是否寄出。请到“更多操作 → 检查邮件是否收到”核对。";
-        if (status.equals("SMTP 连接、证书或认证失败，短信保留待重试；请检查邮件配置")) return "暂时无法连接发件邮箱，或邮箱验证未通过。请检查网络、邮箱账号和授权码，短信会稍后重试。";
-        return status;
-    }
-    void status(String value) { prefs.edit().putString("status", value).apply(); }
+    String status() { return StatusText.read(context, prefs); }
+    void status(int resource, Object... args) { StatusText.save(context, prefs, resource, args); }
+    void status(String value) { prefs.edit().remove("status_key").putString("status", value).apply(); }
 }

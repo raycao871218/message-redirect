@@ -64,8 +64,8 @@ public final class SmtpTest {
         SmsStore.Message sms = new SmsStore.Message("10086", "fixture body", 1, "test", "id", 2, false, null, null, "pending", "+8613800000000");
         MimeMessage mail = SmtpSender.message(profile("ssl", 465), "fixture-device", sms);
         assertTrue(mail.getSubject().contains("+8613800000000 ← 10086"));
-        assertTrue(mail.getContent().toString().contains("接收手机号：+8613800000000\n发送号码：10086"));
+        assertTrue(mail.getContent().toString().contains("Receiving number: +8613800000000\nSender: 10086"));
         SmsStore.Message old = new SmsStore.Message("10086", "history", 1, "test", "old", 2, false);
-        assertTrue(SmtpSender.message(profile("ssl", 465), "fixture-device", old).getContent().toString().contains("接收手机号：未记录"));
+        assertTrue(SmtpSender.message(profile("ssl", 465), "fixture-device", old).getContent().toString().contains("Receiving number: Not recorded"));
     }
 }

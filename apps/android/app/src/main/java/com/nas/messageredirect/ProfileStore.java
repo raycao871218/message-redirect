@@ -31,14 +31,14 @@ final class ProfileStore {
             JSONArray rows = new JSONArray(config.prefs.getString(PROFILES, "[]"));
             for (int i = 0; i < rows.length(); i++) result.add(new Profile(rows.getJSONObject(i)));
             return result;
-        } catch (Exception error) { throw new IllegalArgumentException("本地配置读取失败，请保留应用数据后重试"); }
+        } catch (Exception error) { throw new UserError(R.string.could_not_read_local_profiles_keep_app_data_and_try_again); }
     }
     Profile find(String id) { for (Profile profile : list()) if (profile.id().equals(id)) return profile; return null; }
     String activeId() { return config.prefs.getString(ACTIVE, ""); }
     Profile active() { return find(activeId()); }
     private void lock() {
-        try { if (!DeliveryLock.LOCK.tryLock(200, TimeUnit.MILLISECONDS)) throw new IllegalArgumentException("正在发送，请稍后切换或编辑配置"); }
-        catch (InterruptedException error) { Thread.currentThread().interrupt(); throw new IllegalArgumentException("操作已中断，请重试"); }
+        try { if (!DeliveryLock.LOCK.tryLock(200, TimeUnit.MILLISECONDS)) throw new UserError(R.string.sending_in_progress_switch_or_edit_profiles_later); }
+        catch (InterruptedException error) { Thread.currentThread().interrupt(); throw new UserError(R.string.operation_interrupted_try_again); }
     }
     void migrate() {
         if (config.prefs.contains(PROFILES)) return;
@@ -58,10 +58,10 @@ final class ProfileStore {
         put(data, "id", UUID.randomUUID().toString()); put(data, "mode", mode);
         if (SyncConfig.EMAIL.equals(mode)) {
             String host = config.prefs.getString("smtp_host", "");
-            put(data, "name", SmtpPresets.matching(host).host.isEmpty() ? "邮件转发" : SmtpPresets.matching(host).name);
+            put(data, "name", SmtpPresets.matching(host).host.isEmpty() ? config.context.getString(R.string.email_forwarding) : config.context.getString(SmtpPresets.matching(host).name));
             for (String key : MAIL_KEYS) put(data, key, config.prefs.getString(key, ""));
             put(data, "smtp_port", config.prefs.getInt("smtp_port", 465));
-        } else { put(data, "name", "自建数据库"); put(data, "url", config.url()); put(data, "token", config.token()); }
+        } else { put(data, "name", config.context.getString(R.string.self_hosted_archive)); put(data, "url", config.url()); put(data, "token", config.token()); }
         return new Profile(data);
     }
     private static final String[] MAIL_KEYS = {"smtp_host", "smtp_security", "smtp_username", "smtp_password_encrypted", "smtp_from", "smtp_to"};
@@ -71,19 +71,19 @@ final class ProfileStore {
         Profile profile = find(id);
         if (profile != null && profile.get("smtp_host").equalsIgnoreCase(host.trim()) && profile.get("smtp_username").equals(username.trim()))
             return SecretStore.decrypt(profile.get("smtp_password_encrypted"));
-        throw new IllegalArgumentException("新增配置或更换账号、服务器时，请填写邮箱授权码");
+        throw new UserError(R.string.enter_an_app_password_when_adding_a_profile_or_changing_the_serve);
     }
     void save(String id, String name, String mode, String url, String token, SmtpProfile smtp) {
         lock();
         try {
-            if (name.trim().isEmpty()) throw new IllegalArgumentException("请给配置起一个名称");
-            if (!SyncConfig.EMAIL.equals(mode) && !SyncConfig.DATABASE.equals(mode)) throw new IllegalArgumentException("配置方式不正确");
+            if (name.trim().isEmpty()) throw new UserError(R.string.enter_a_name_for_this_profile);
+            if (!SyncConfig.EMAIL.equals(mode) && !SyncConfig.DATABASE.equals(mode)) throw new UserError(R.string.invalid_forwarding_method);
             JSONObject data = new JSONObject();
             String savedId = id.isEmpty() ? UUID.randomUUID().toString() : id;
-            if (!id.isEmpty() && find(id) == null) throw new IllegalArgumentException("配置已不存在，请返回列表刷新");
+            if (!id.isEmpty() && find(id) == null) throw new UserError(R.string.this_profile_no_longer_exists_return_to_the_list_and_refresh);
             put(data, "id", savedId); put(data, "name", name.trim()); put(data, "mode", mode);
             if (SyncConfig.EMAIL.equals(mode)) {
-                if (smtp == null) throw new IllegalArgumentException("请填写邮箱配置");
+                if (smtp == null) throw new UserError(R.string.enter_your_email_settings);
                 smtp.validate();
                 put(data, "smtp_host", smtp.host); put(data, "smtp_port", smtp.port); put(data, "smtp_security", smtp.security);
                 put(data, "smtp_username", smtp.username); put(data, "smtp_password_encrypted", SecretStore.encrypt(smtp.password));
@@ -93,8 +93,8 @@ final class ProfileStore {
                 try {
                     URI uri = new URI(url);
                     if (!("https".equals(uri.getScheme()) || "http".equals(uri.getScheme())) || uri.getHost() == null || uri.getUserInfo() != null || uri.getQuery() != null || uri.getFragment() != null) throw new Exception();
-                } catch (Exception error) { throw new IllegalArgumentException("请填写完整的 HTTP/HTTPS 配套服务地址"); }
-                if (token.length() < 32) throw new IllegalArgumentException("服务访问令牌至少需要 32 位");
+                } catch (Exception error) { throw new UserError(R.string.enter_the_full_http_https_url_of_the_companion_service); }
+                if (token.length() < 32) throw new UserError(R.string.service_access_tokens_need_at_least_32_characters);
                 while (url.endsWith("/")) url = url.substring(0, url.length() - 1);
                 put(data, "url", url); put(data, "token", token);
             }
@@ -112,10 +112,10 @@ final class ProfileStore {
         lock();
         try {
             Profile profile = find(id);
-            if (profile == null) throw new IllegalArgumentException("配置不存在，请刷新后重试");
+            if (profile == null) throw new UserError(R.string.profile_not_found_refresh_and_try_again);
             if (SyncConfig.EMAIL.equals(profile.mode())) profile.smtp().validate();
-            else if (profile.get("token").length() < 32) throw new IllegalArgumentException("请先编辑配置并填写有效的服务访问令牌");
-            SharedPreferences.Editor editor = config.prefs.edit().putString(ACTIVE, id).putString("status", "已切换配置。收到新短信后自动转发，尚未发送的短信会继续尝试。");
+            else if (profile.get("token").length() < 32) throw new UserError(R.string.edit_this_profile_and_enter_a_valid_service_access_token_first);
+            SharedPreferences.Editor editor = config.prefs.edit().putString(ACTIVE, id).putString("status_key", "profile_switched_new_sms_will_be_forwarded_automatically_and_unse").putString("status_args", "[]").remove("status_at");
             apply(editor, profile); commit(editor);
         } finally { DeliveryLock.LOCK.unlock(); }
     }
@@ -127,6 +127,6 @@ final class ProfileStore {
         } else editor.putString("url", profile.get("url")).putString("token", profile.get("token"));
     }
     private static String encode(List<Profile> profiles) { JSONArray array = new JSONArray(); for (Profile profile : profiles) array.put(profile.data); return array.toString(); }
-    private static void put(JSONObject data, String key, Object value) { try { data.put(key, value); } catch (Exception error) { throw new IllegalArgumentException("配置内容无法保存"); } }
-    private static void commit(SharedPreferences.Editor editor) { if (!editor.commit()) throw new IllegalArgumentException("配置保存失败，请重试"); }
+    private static void put(JSONObject data, String key, Object value) { try { data.put(key, value); } catch (Exception error) { throw new UserError(R.string.could_not_save_the_profile_contents); } }
+    private static void commit(SharedPreferences.Editor editor) { if (!editor.commit()) throw new UserError(R.string.could_not_save_settings_try_again); }
 }

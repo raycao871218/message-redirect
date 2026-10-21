@@ -8,6 +8,12 @@ public final class SmsInstrumentation extends Instrumentation {
     private Bundle arguments;
     @Override public void onCreate(Bundle args) { arguments = args; start(); }
     @Override public void onStart() {
+        if (arguments != null && "true".equals(arguments.getString("localization_flow"))) {
+            Bundle result = new Bundle();
+            try { LocaleChecks.run(getTargetContext()); result.putString("stream", "PASS: en/zh/ja, regional locales, fallback, validation, persisted statuses, and localized email templates"); finish(-1, result); }
+            catch (Throwable error) { result.putString("stream", "FAIL: " + error); finish(0, result); }
+            return;
+        }
         if (arguments != null && "true".equals(arguments.getString("pairing_flow"))) { testPairingFlow(); return; }
         if (arguments != null && "true".equals(arguments.getString("dialog_flow"))) { testDialogs(); return; }
         if (arguments != null && "true".equals(arguments.getString("render_ui"))) { renderPreview(); return; }
@@ -351,9 +357,9 @@ public final class SmsInstrumentation extends Instrumentation {
             runOnMainSync(() -> {
                 android.view.View root = app.getWindow().getDecorView();
                 renderView(app, root, "crayon-home.png");
-                view(root, "管理转发配置", false).performClick();
+                view(root, app.getString(R.string.manage_profiles), false).performClick();
                 renderView(app, root, "crayon-cards.png");
-                view(root, "编辑配置", false).performClick();
+                view(root, app.getString(R.string.edit_profile), false).performClick();
                 renderView(app, root, "crayon-editor.png");
             });
             result.putString("stream", "PASS: rendered native home, cards and editor from paused preview fixtures"); finish(-1, result);

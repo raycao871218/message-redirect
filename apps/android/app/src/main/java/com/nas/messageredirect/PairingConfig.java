@@ -24,6 +24,6 @@ final class PairingConfig {
             if (!("https".equals(uri.getScheme()) || "http".equals(uri.getScheme())) || uri.getHost() == null || uri.getUserInfo() != null || uri.getQuery() != null || uri.getFragment() != null || uri.getPort() > 65535 || uri.getPort() == 0) throw new IllegalArgumentException();
             while (url.endsWith("/")) url = url.substring(0, url.length() - 1);
             return new PairingConfig(name, url, token);
-        } catch (Exception error) { throw new IllegalArgumentException("这不是有效的咕咕咕服务配对码，请扫描后端面板中的二维码"); }
+        } catch (Exception error) { throw new UserError(R.string.invalid_gugugu_pairing_code_scan_the_qr_code_in_the_service_admin); }
     }
 }

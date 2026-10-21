@@ -28,20 +28,20 @@ public final class PairingScannerActivity extends Activity {
         page.setBackground(CrayonTexture.paper(0xfffcf6e8, getResources().getDisplayMetrics().density));
         LinearLayout header = new LinearLayout(this); header.setGravity(Gravity.CENTER_VERTICAL);
         MascotView dove = new MascotView(this); dove.setMode(SyncConfig.DATABASE, false); header.addView(dove, new LinearLayout.LayoutParams(dp(72), dp(72)));
-        TextView title = new TextView(this); title.setText("扫一扫，找到小窝"); title.setTextSize(22); title.setTextColor(0xff3b3a49); header.addView(title); page.addView(header);
-        hint = new TextView(this); hint.setText("对准后端面板上的配置二维码。扫码后会先预览，不会自动修改配置。"); hint.setTextColor(0xff706b75); hint.setTextSize(14); hint.setPadding(0, dp(12), 0, dp(18)); page.addView(hint);
+        TextView title = new TextView(this); title.setText(getString(R.string.scan_to_find_your_nest)); title.setTextSize(22); title.setTextColor(0xff3b3a49); header.addView(title); page.addView(header);
+        hint = new TextView(this); hint.setText(getString(R.string.point_the_camera_at_the_configuration_qr_code_in_the_service_pane)); hint.setTextColor(0xff706b75); hint.setTextSize(14); hint.setPadding(0, dp(12), 0, dp(18)); page.addView(hint);
         scanner = new DecoratedBarcodeView(this); scanner.setStatusText(""); scanner.getBarcodeView().setDecoderFactory(new DefaultDecoderFactory(Collections.singletonList(BarcodeFormat.QR_CODE)));
         page.addView(scanner, new LinearLayout.LayoutParams(-1, 0, 1));
         scanner.getBarcodeView().addStateListener(new CameraPreview.StateListener() {
             public void previewSized() {} public void previewStarted() {} public void previewStopped() {} public void cameraClosed() {}
-            public void cameraError(Exception error) { hint.setText("相机暂时无法使用。可以返回后重试，或手动填写服务地址和访问密钥。"); }
+            public void cameraError(Exception error) { hint.setText(getString(R.string.camera_unavailable_go_back_and_retry_or_enter_the_service_url_and)); }
         });
         scanner.decodeSingle(new BarcodeCallback() {
             @Override public void barcodeResult(BarcodeResult result) {
                 scanner.pause(); setResult(RESULT_OK, new Intent().putExtra("pairing", result.getText())); finish();
             }
         });
-        Button cancel = new Button(this); cancel.setText("取消，返回设置"); cancel.setAllCaps(false); cancel.setTextColor(0xff3b3a49); cancel.setMinHeight(dp(50));
+        Button cancel = new Button(this); cancel.setText(getString(R.string.cancel_and_return_to_settings)); cancel.setAllCaps(false); cancel.setTextColor(0xff3b3a49); cancel.setMinHeight(dp(50));
         cancel.setBackground(new SketchDrawable(0xfffffcf4, 0xff8a8a9a, 1.6f, getResources().getDisplayMetrics().density));
         LinearLayout.LayoutParams action = new LinearLayout.LayoutParams(-1, -2); action.topMargin = dp(18); page.addView(cancel, action); cancel.setOnClickListener(view -> finish()); setContentView(page);
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) requestPermissions(new String[]{Manifest.permission.CAMERA}, 42);
@@ -51,7 +51,7 @@ public final class PairingScannerActivity extends Activity {
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(request, permissions, grants);
         if (request == 42 && checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) scanner.resume();
-        else hint.setText("未授予相机权限。可返回手动填写配置；需要扫码时，在系统权限设置中允许使用相机。");
+        else hint.setText(getString(R.string.camera_permission_was_not_granted_enter_settings_manually_or_allo));
     }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 }

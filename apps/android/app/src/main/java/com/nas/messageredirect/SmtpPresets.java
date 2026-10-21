@@ -1,31 +1,32 @@
 package com.nas.messageredirect;
 
 final class SmtpPresets {
-    static final String MICROSOFT_HELP = "https://support.microsoft.com/zh-cn/outlook/pop-imap-and-smtp-settings-for-outlook-com";
-    static final String CUSTOM_HINT = "自定义邮箱需填写服务商提供的 SMTP 服务器、端口和授权码。";
+    static final String MICROSOFT_HELP = "https://support.microsoft.com/outlook/pop-imap-and-smtp-settings-for-outlook-com";
+    static final int CUSTOM_HINT = R.string.for_a_custom_provider_enter_its_smtp_server_port_and_app_password;
     static final class Preset {
-        final String name, host, security, hint, help;
+        final String host, security, help;
+        final int name, hint;
         final int port;
-        Preset(String name, String host, int port, String security, String hint, String help) {
+        Preset(int name, String host, int port, String security, int hint, String help) {
             this.name = name; this.host = host; this.port = port; this.security = security; this.hint = hint; this.help = help;
         }
     }
     static final Preset[] ALL = {
-        new Preset("自定义／保留当前参数", "", 465, "ssl", CUSTOM_HINT, ""),
-        new Preset("Google Gmail", "smtp.gmail.com", 465, "ssl",
-            "先开启 Google 账号两步验证，再生成应用专用密码，填入下方授权码栏。",
-            "https://support.google.com/accounts/answer/185833?hl=zh-Hans"),
-        new Preset("QQ 邮箱", "smtp.qq.com", 465, "ssl",
-            "在 QQ 邮箱设置中开启 SMTP 服务，生成授权码后填入下方。",
+        new Preset(R.string.custom_keep_current_settings, "", 465, "ssl", CUSTOM_HINT, ""),
+        new Preset(R.string.provider_gmail, "smtp.gmail.com", 465, "ssl",
+            R.string.enable_2_step_verification_in_your_google_account_then_generate_a,
+            "https://support.google.com/accounts/answer/185833"),
+        new Preset(R.string.qq_mail, "smtp.qq.com", 465, "ssl",
+            R.string.enable_smtp_in_qq_mail_settings_generate_an_authorization_code_an,
             "https://service.mail.qq.com/"),
-        new Preset("微软 Outlook／Hotmail（需 OAuth2）", "smtp-mail.outlook.com", 587, "starttls",
-            "微软个人邮箱要求 OAuth2 登录。本版尚未接入微软登录，仅提供服务器参数，暂不能用密码或授权码直接发送。",
+        new Preset(R.string.microsoft_outlook_hotmail_oauth2_required, "smtp-mail.outlook.com", 587, "starttls",
+            R.string.personal_microsoft_accounts_require_oauth2_this_version_does_not,
             MICROSOFT_HELP),
-        new Preset("网易 163 邮箱", "smtp.163.com", 465, "ssl",
-            "在网易邮箱设置中开启 SMTP 服务，并获取客户端授权码。",
+        new Preset(R.string.netease_163_mail, "smtp.163.com", 465, "ssl",
+            R.string.enable_smtp_in_netease_mail_settings_and_obtain_a_client_authoriz,
             "https://help.mail.126.com/faq.do?categoryID=90&m=list"),
-        new Preset("网易 126 邮箱", "smtp.126.com", 465, "ssl",
-            "在网易邮箱设置中开启 SMTP 服务，并获取客户端授权码。",
+        new Preset(R.string.netease_126_mail, "smtp.126.com", 465, "ssl",
+            R.string.enable_smtp_in_netease_mail_settings_and_obtain_a_client_authoriz,
             "https://help.mail.126.com/faq.do?categoryID=90&m=list")
     };
     static Preset matching(String host) {
@@ -34,6 +35,6 @@ final class SmtpPresets {
     }
     static boolean requiresOAuth(String host) { return "smtp-mail.outlook.com".equalsIgnoreCase(host.trim()); }
     static void requirePasswordAuth(String host) {
-        if (requiresOAuth(host)) throw new IllegalArgumentException("微软个人邮箱需要 OAuth2 登录，本版暂不支持；请选择其他邮箱或暂时关闭发送");
+        if (requiresOAuth(host)) throw new UserError(R.string.personal_microsoft_accounts_require_oauth2_which_is_not_supported);
     }
 }

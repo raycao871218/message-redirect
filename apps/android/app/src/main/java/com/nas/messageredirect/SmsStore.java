@@ -10,9 +10,10 @@ import java.util.List;
 import java.util.UUID;
 
 final class SmsStore extends SQLiteOpenHelper {
+    private final Context context;
     static final String CHANGED = "com.nas.messageredirect.CHANGED";
     SmsStore(Context context) { this(context, "messages.db"); }
-    SmsStore(Context context, String databaseName) { super(context, databaseName, null, 4); }
+    SmsStore(Context context, String databaseName) { super(context, databaseName, null, 4); this.context = context; }
     @Override public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE messages (_id INTEGER PRIMARY KEY, sender TEXT NOT NULL, body TEXT NOT NULL, sent_at INTEGER NOT NULL, captured_at INTEGER NOT NULL, source TEXT NOT NULL, message_id TEXT NOT NULL UNIQUE, uploaded_at INTEGER, delivery_mode TEXT, delivery_target TEXT, delivery_state TEXT NOT NULL DEFAULT 'pending', receiving_number TEXT NOT NULL DEFAULT '', UNIQUE(sender, body, sent_at, receiving_number))");
     }
@@ -47,7 +48,7 @@ final class SmsStore extends SQLiteOpenHelper {
     }
     boolean save(String sender, String body, long sentAt, String source, String receivingNumber) {
         ContentValues v = new ContentValues();
-        v.put("sender", sender == null ? "未知号码" : sender); v.put("body", body == null ? "" : body);
+        v.put("sender", sender == null ? context.getString(R.string.unknown_number) : sender); v.put("body", body == null ? "" : body);
         v.put("sent_at", sentAt); v.put("captured_at", System.currentTimeMillis()); v.put("source", source);
         v.put("message_id", UUID.randomUUID().toString());
         v.put("receiving_number", receivingNumber == null ? "" : receivingNumber);

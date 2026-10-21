@@ -28,7 +28,7 @@ final class SecretStore {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, key());
             return Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP) + ":" +
                 Base64.encodeToString(cipher.doFinal(value.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
-        } catch (Exception e) { throw new IllegalArgumentException("无法安全保存邮箱密码，请重试"); }
+        } catch (Exception e) { throw new UserError(R.string.could_not_securely_save_the_email_password_try_again); }
     }
     static String decrypt(String value) {
         if (value.isEmpty()) return "";
@@ -38,6 +38,6 @@ final class SecretStore {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, Base64.decode(parts[0], Base64.NO_WRAP)));
             return new String(cipher.doFinal(Base64.decode(parts[1], Base64.NO_WRAP)), StandardCharsets.UTF_8);
-        } catch (Exception e) { throw new IllegalArgumentException("邮箱密码无法解密，请重新填写并保存"); }
+        } catch (Exception e) { throw new UserError(R.string.could_not_decrypt_the_email_password_enter_it_again_and_save); }
     }
 }

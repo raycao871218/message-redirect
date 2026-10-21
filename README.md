@@ -23,6 +23,8 @@ Self-hosted archiving is an optional advanced feature, primarily for users build
 
 Keep the phone connected to the internet, and new SMS messages will be sent directly to your chosen inbox. Read them by email on the phone you carry, with no self-hosted service or app compilation required. Only new messages are forwarded; your existing inbox is not automatically imported.
 
+The app automatically follows your system language, with English, Chinese (Simplified and Traditional), and Japanese support. Other languages fall back to English. On Android 13 or later, you can also choose the app language in system settings.
+
 ## App usage
 
 Requires Android 6.0 or later. During setup, choose “邮件转发” (Email forwarding) or “自建数据库” (Self-hosted database), set the receiving phone number, and grant permission to receive SMS. Later, use “管理转发配置” (Manage forwarding configurations) to choose a configuration card. The main switch on the home screen controls forwarding; switching cards does not enable forwarding when it is paused. The app receives new messages only and does not automatically import your existing inbox.

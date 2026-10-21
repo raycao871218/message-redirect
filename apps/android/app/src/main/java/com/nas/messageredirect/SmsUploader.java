@@ -28,7 +28,7 @@ final class SmsUploader {
                     if (Thread.currentThread().isInterrupted() || !new SyncConfig(context, preferences).enabled()) return true;
                     List<SmsStore.Message> rows = store.pending(config.mode(), config.target());
                     if (rows.isEmpty()) {
-                        if (total > 0) config.status((SyncConfig.EMAIL.equals(config.mode()) ? "发件服务器已接收本次 " + total + " 封邮件" : "本次已保存 " + total + " 条短信到数据库") + " · " + java.text.DateFormat.getDateTimeInstance().format(new java.util.Date()));
+                        if (total > 0) config.status(SyncConfig.EMAIL.equals(config.mode()) ? R.string.status_mail_accepted : R.string.status_archived, total);
                         return false;
                     }
                     for (SmsStore.Message row : rows) store.bindDelivery(row.id, config.mode(), config.target());
@@ -38,19 +38,19 @@ final class SmsUploader {
                             if (Thread.currentThread().isInterrupted()) return true;
                             final boolean[] dataStarted = {false};
                             try {
-                                SmtpSender.send(smtp, config.deviceId(), row, () -> {
+                                SmtpSender.send(context, smtp, config.deviceId(), row, () -> {
                                     if (Thread.currentThread().isInterrupted()) throw new IllegalStateException("sending stopped");
                                     store.emailSending(row.id); dataStarted[0] = true;
                                 });
                                 store.markUploaded(java.util.Collections.singletonList(row.id)); total++;
-                                config.status("发件服务器已接收 " + total + " 封邮件，请以收件箱实际收到为准。");
+                                config.status(R.string.status_mail_accepted, total);
                             } catch (Exception error) {
                                 if (dataStarted[0]) {
                                     store.emailUncertain(row.id);
-                                    config.status("发送时连接中断，邮件可能已经寄出。请到“更多操作 → 检查邮件是否收到”核对，这封邮件不会自动重发。");
+                                    config.status(R.string.the_connection_dropped_while_sending_the_email_may_already_have_b);
                                     return store.eligibleCount(config.mode(), config.target()) > 0;
                                 }
-                                config.status("暂时无法连接发件邮箱，或邮箱验证未通过。短信已保留，会稍后重试；请检查网络、邮箱账号和授权码。");
+                                config.status(R.string.could_not_connect_or_sign_in_to_your_email_provider_sms_is_kept_f);
                                 return true;
                             }
                         }
@@ -74,7 +74,7 @@ final class SmsUploader {
                         connection.setRequestProperty("Authorization", "Bearer " + config.token());
                         try (java.io.OutputStream output = connection.getOutputStream()) { output.write(body); }
                         int code = connection.getResponseCode();
-                        if (code != 200) { config.status("保存到数据库未成功（HTTP " + code + "）。短信已保留，会稍后重试；请检查服务地址和访问令牌。"); return true; }
+                        if (code != 200) { config.status(R.string.status_http_error, code); return true; }
                         ByteArrayOutputStream response = new ByteArrayOutputStream();
                         try (InputStream input = connection.getInputStream()) {
                             byte[] buffer = new byte[4096]; int read;
@@ -93,13 +93,13 @@ final class SmsUploader {
                         if (!sent.isEmpty()) throw new IllegalStateException("incomplete acknowledgement");
                         if (Thread.currentThread().isInterrupted()) return true;
                         store.markUploaded(confirmed); total += confirmed.size();
-                        config.status("本次已保存 " + total + " 条短信到数据库。");
+                        config.status(R.string.status_archived, total);
                     } finally { connection.disconnect(); }
                 }
                 return store.eligibleCount(config.mode(), config.target()) > 0;
             } catch (Exception e) {
                 // Never persist exception text: URLs, authentication, or message contents may be included.
-                config.status("这次转发未完成。短信已保留在手机，会稍后重试；请检查网络和转发配置。");
+                config.status(R.string.forwarding_was_not_completed_sms_is_kept_on_the_phone_for_retry_c);
                 return true;
             } finally {
                 context.sendBroadcast(new Intent(SmsStore.CHANGED).setPackage(context.getPackageName()));

@@ -14,13 +14,13 @@ final class SmtpProfile {
     }
     void validate() {
         if (host.isEmpty() || host.length() > 253 || !host.matches("[A-Za-z0-9.-]+") || host.startsWith(".") || host.endsWith("."))
-            throw new IllegalArgumentException("SMTP 主机只填写域名或 IP，不包含协议或端口");
-        if (port < 1 || port > 65535) throw new IllegalArgumentException("SMTP 端口需为 1–65535");
-        if (!"ssl".equals(security) && !"starttls".equals(security)) throw new IllegalArgumentException("请选择 SSL/TLS 或 STARTTLS");
+            throw new UserError(R.string.enter_only_the_smtp_hostname_or_ip_without_a_protocol_or_port);
+        if (port < 1 || port > 65535) throw new UserError(R.string.smtp_port_must_be_between_1_and_65535);
+        if (!"ssl".equals(security) && !"starttls".equals(security)) throw new UserError(R.string.choose_ssl_tls_or_starttls);
         SmtpPresets.requirePasswordAuth(host);
         if (username.isEmpty() || username.contains("\r") || username.contains("\n") || password.isEmpty())
-            throw new IllegalArgumentException("请填写 SMTP 账号和密码／授权码");
-        mailbox(from, "发件邮箱"); mailbox(to, "收件邮箱");
+            throw new UserError(R.string.enter_your_smtp_account_and_password_or_authorization_code);
+        mailbox(from, "sender"); mailbox(to, "recipient");
     }
     static InternetAddress mailbox(String value, String label) {
         try {
@@ -30,7 +30,7 @@ final class SmtpProfile {
             if (addresses.length != 1 || addresses[0].isGroup() || !value.equals(addresses[0].getAddress()) || !value.contains("@"))
                 throw new IllegalArgumentException();
             addresses[0].validate(); return addresses[0];
-        } catch (Exception error) { throw new IllegalArgumentException("请填写单个有效的" + label); }
+        } catch (Exception error) { throw new UserError(R.string.enter_a_single_valid_email_address); }
     }
     Properties properties() {
         Properties props = new Properties();
