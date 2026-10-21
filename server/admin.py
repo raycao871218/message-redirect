@@ -15,9 +15,11 @@ import qrcode.image.svg
 try:
     from . import database
     from .settings import VERSION, SESSION_SECONDS, service_url
+    from .i18n import request_language, translate
 except ImportError:
     import database
     from settings import VERSION, SESSION_SECONDS, service_url
+    from i18n import request_language, translate
 
 COOKIE = "gugugu_admin"
 STATIC = Path(__file__).with_name("static")
@@ -168,7 +170,7 @@ def register_admin(app, state):
         if result == "same":
             raise HTTPException(422, "新密码不能与当前密码相同")
         from fastapi.responses import JSONResponse
-        response = JSONResponse({"ok": True, "message": "登录密码已更新，请使用新密码重新登录"})
+        response = JSONResponse({"ok": True, "message": translate("登录密码已更新，请使用新密码重新登录", request_language(request))})
         response.delete_cookie(COOKIE, path="/")
         return response
 
@@ -193,11 +195,11 @@ def register_admin(app, state):
                 try:
                     # SQLite connection checks must not create a typo'd path or empty database file.
                     if data.type == "sqlite" and not Path(candidate["database"]["path"]).is_file():
-                        return {"ok": True, "message": "此文件尚未创建，保存时会创建并验证数据库；当前连接保持不变"}
+                        return {"ok": True, "message": translate("此文件尚未创建，保存时会创建并验证数据库；当前连接保持不变", request_language(request))}
                     database.health(candidate)
                 except database.ERRORS:
                     raise HTTPException(400, "连接失败，请检查地址、账号、密码、网络和数据库访问权限") from None
-                return {"ok": True, "message": "连接成功；保存前不会切换当前数据库"}
+                return {"ok": True, "message": translate("连接成功；保存前不会切换当前数据库", request_language(request))}
         return await run_in_threadpool(check)
 
     @app.post("/admin/api/database", include_in_schema=False)
@@ -214,7 +216,7 @@ def register_admin(app, state):
                 except database.ERRORS:
                     raise HTTPException(400, "保存失败，原连接保持不变。请检查数据库连接、建表权限和状态卷写入权限") from None
                 state.database_ready = True
-            return {"ok": True, "message": "已保存。后续短信使用此数据库，原数据库中的短信保持原样"}
+            return {"ok": True, "message": translate("已保存。后续短信使用此数据库，原数据库中的短信保持原样", request_language(request))}
         return await run_in_threadpool(save)
 
     @app.post("/admin/api/token/reset", include_in_schema=False)

@@ -3,7 +3,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /srv
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && mkdir /data && chown 10001:10001 /data
-COPY server.py config.py database.py settings.py admin.py schema*.sql ./
+COPY server.py config.py database.py settings.py admin.py i18n.py schema*.sql ./
 COPY static/ ./static/
 USER 10001:10001
 EXPOSE 18081

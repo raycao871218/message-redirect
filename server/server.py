@@ -13,17 +13,20 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from starlette.concurrency import run_in_threadpool
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 try:
     from . import database
     from .config import load_config
     from .settings import SettingsStore, VERSION
     from .admin import STATIC, register_admin
+    from .i18n import language, request_language, translate, schema_translation
 except ImportError:  # Also support `python server.py` in the container.
     import database
     from config import load_config
     from settings import SettingsStore, VERSION
     from admin import STATIC, register_admin
+    from i18n import language, request_language, translate, schema_translation
 
 MAX_BODY_BYTES = 1024 * 1024
 
@@ -95,10 +98,17 @@ def create_app(config, writer=None, bootstrap=True):
                   description="独立自托管短信归档服务，无需 NASBridge。先在管理面板取得访问密钥，再点击 Authorize 填写密钥。"
                               "相同 device_id + message_id 重试不会重复入库；内容冲突返回 409，整批回滚。"
                               "支持分页查询、单条详情及共享已读状态。读取不会自动标记已读，重复上传不会重置阅读状态。时间戳单位为毫秒。",
-                  docs_url=None, redoc_url=None)
+                  docs_url=None, redoc_url=None, openapi_url=None)
     app.state.settings = state
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
     register_admin(app, state)
+
+    @app.exception_handler(StarletteHTTPException)
+    async def translated_admin_error(request, error):
+        detail = error.detail
+        if request.url.path.startswith("/admin/api/") and isinstance(detail, str):
+            detail = translate(detail, request_language(request))
+        return JSONResponse({"detail": detail}, status_code=error.status_code, headers=error.headers)
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(request, error):
@@ -226,6 +236,11 @@ def create_app(config, writer=None, bootstrap=True):
             app.openapi_schema = schema
         return app.openapi_schema
     app.openapi = documented_schema
+
+    @app.get("/openapi.json", include_in_schema=False)
+    def openapi_document(request: Request, lang: str | None = None):
+        selected = language(lang if lang is not None else request.headers.get("accept-language"))
+        return schema_translation(documented_schema(), selected)
     return app
 
 

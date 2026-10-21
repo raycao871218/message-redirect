@@ -14,7 +14,7 @@ import time
 from urllib.parse import urlsplit
 
 
-VERSION = "0.8.2"
+VERSION = "0.9.4"
 SESSION_SECONDS = 8 * 60 * 60
 PASSWORD_ITERATIONS = 310000
 

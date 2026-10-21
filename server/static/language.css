@@ -1,0 +1,18 @@
+.locale-switch { position: relative; flex-shrink: 0; font-size: 13px; color: #3b3a49; }
+.locale-switch > summary { display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 76px; min-height: 44px; padding: 7px 11px; cursor: pointer; list-style: none; background: #fffcf4; border: 1px solid #8a8a9a; border-radius: 9px 13px 10px 8px; font-weight: 650; user-select: none; }
+.locale-switch > summary::-webkit-details-marker { display: none; }
+.locale-switch > summary:hover { background: #eef0f6; }
+.locale-switch > summary:focus-visible { outline: 3px solid #657da9; outline-offset: 3px; }
+.locale-options { box-sizing: border-box; position: absolute; right: 0; top: calc(100% + 7px); z-index: 30; min-width: 170px; padding: 6px; border: 1px solid #8a8a9a; border-radius: 12px 16px; background: #fffcf4; box-shadow: 0 7px 20px #3b3a491c; }
+.locale-options button { box-sizing: border-box; display: block; width: 100%; min-height: 44px; padding: 9px 11px; margin: 0; border: 0; border-radius: 8px; background: transparent; color: inherit; box-shadow: none; font: inherit; text-align: left; cursor: pointer; }
+.locale-options button:hover, .locale-options button:focus-visible { background: #eef0f6; transform: none; }
+.locale-options button.selected { background: #e6edf7; font-weight: 650; }
+.locale-options button.selected::after { content: "✓"; float: right; margin-left: 10px; }
+.docs-banner .locale-switch { margin-left: 0; }
+@media (max-width: 580px) {
+  .masthead { flex-wrap: wrap; gap: 12px; }
+  .masthead nav { margin-left: auto; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+  .docs-banner .locale-switch { margin-left: auto; }
+  .docs-banner strong { flex: 1; min-width: 0; }
+  .docs-banner a { margin-left: 0; }
+}
