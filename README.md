@@ -1,7 +1,7 @@
-<h1 align="center">GuGuGu · Message Redirect</h1>
+<h1 align="center">Coo Coo Coo · Message Redirect</h1>
 
 <p align="center">
-  <img src="docs/assets/dove-courtship.gif" alt="GuGuGu the spotted dove performing a courtship bow" width="280">
+  <img src="docs/assets/dove-courtship.gif" alt="Coo Coo Coo the spotted dove performing a courtship bow" width="280">
 </p>
 
 <p align="center">
@@ -9,9 +9,9 @@
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸_English-Current-blue" alt="English (current)"></a>
 </p>
 
-**Download the app and start using it—no server, Docker, or database deployment required.** GuGuGu is a native Android SMS forwarding app. Configure your email account on the phone, and it can forward SMS messages and verification codes directly via SMTP.
+**Download the app and start using it—no server, Docker, or database deployment required.** Coo Coo Coo is a native Android SMS forwarding app. Configure your email account on the phone, and it can forward SMS messages and verification codes directly via SMTP.
 
-When you have several phones, taking all of them with you is not always practical—and verification codes often arrive on the one you left at home. GuGuGu is a little messenger for that stay-at-home Android phone, delivering messages to an email inbox you can check on the go.
+When you have several phones, taking all of them with you is not always practical—and verification codes often arrive on the one you left at home. Coo Coo Coo is a little messenger for that stay-at-home Android phone, delivering messages to an email inbox you can check on the go.
 
 Self-hosted archiving is an optional advanced feature, primarily for users building integrations or custom clients, or those who need greater control over message privacy and storage. The project is released under the [MIT License](LICENSE).
 
@@ -80,7 +80,7 @@ To create a self-hosted archive profile in the app, provide:
 - **Service URL:** `https://your-service-domain`, or the service address on a trusted local network.
 - **Access token:** The contents of your local `.secrets/api-token` file. Real tokens are never bundled in source code, images, or examples.
 
-The app connects to the companion archive service; database credentials stay on the server. The admin panel handles configuration. Developers can use the Bearer-authenticated API to page through messages, retrieve message details, and manage shared read status. See the [API documentation](docs/api.md) for the complete protocol. Queries do not automatically mark messages as read or change the phone's inbox state. PostgreSQL users can also deploy [NASBridge](https://github.com/raycao871218/NASBridge) separately; it is not a dependency of GuGuGu's archive service.
+The app connects to the companion archive service; database credentials stay on the server. The admin panel handles configuration. Developers can use the Bearer-authenticated API to page through messages, retrieve message details, and manage shared read status. See the [API documentation](docs/api.md) for the complete protocol. Queries do not automatically mark messages as read or change the phone's inbox state. PostgreSQL users can also deploy [NASBridge](https://github.com/raycao871218/NASBridge) separately; it is not a dependency of Coo Coo Coo's archive service.
 
 ### Choosing a database
 
