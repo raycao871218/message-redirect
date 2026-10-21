@@ -377,11 +377,24 @@ public final class MainActivity extends Activity {
         button(root, c.setupComplete() ? getString(R.string.manage_profiles) : getString(R.string.complete_setup), true, view -> {
             loadDraft(); if (c.setupComplete()) showSettings(); else { step = 0; showStep(); }
         });
-        button(root, getString(R.string.more_actions), false, view -> dialog().setTitle(getString(R.string.more_actions))
-            .setItems(new String[]{getString(R.string.retry_unsent_sms), getString(R.string.check_email_delivery), getString(R.string.usage_guide), getString(R.string.open_app_permissions), getString(R.string.about_gugugu)}, (dialog, which) -> {
-                if (which == 0) uploadNow(); else if (which == 1) resolveUncertain(); else if (which == 2) showUsage(); else if (which == 3) openPermissions(); else showAbout();
-            }).setNegativeButton(getString(R.string.close), null).show());
+        button(root, getString(R.string.more_actions), false, view -> showMoreActions());
         root.addView(notice); refresh();
+    }
+    private void showMoreActions() {
+        boolean mail = SyncConfig.EMAIL.equals(new SyncConfig(this).mode());
+        int[] actions = mail
+            ? new int[]{R.string.retry_unsent_sms, R.string.check_email_delivery, R.string.usage_guide, R.string.open_app_permissions, R.string.about_gugugu}
+            : new int[]{R.string.retry_unsent_sms, R.string.usage_guide, R.string.open_app_permissions, R.string.about_gugugu};
+        String[] names = new String[actions.length];
+        for (int i = 0; i < actions.length; i++) names[i] = getString(actions[i]);
+        dialog().setTitle(getString(R.string.more_actions)).setItems(names, (dialog, which) -> {
+            int action = actions[which];
+            if (action == R.string.retry_unsent_sms) uploadNow();
+            else if (action == R.string.check_email_delivery) resolveUncertain();
+            else if (action == R.string.usage_guide) showUsage();
+            else if (action == R.string.open_app_permissions) openPermissions();
+            else if (action == R.string.about_gugugu) showAbout();
+        }).setNegativeButton(getString(R.string.close), null).show();
     }
     private void showLanguages() {
         String[] names = {getString(R.string.language_system), getString(R.string.language_chinese), getString(R.string.language_english), getString(R.string.language_japanese)};
@@ -411,7 +424,8 @@ public final class MainActivity extends Activity {
     }
     private void showUsage() {
         dialog().setTitle(getString(R.string.usage_guide))
-            .setMessage(getString(R.string.automatic_forwarding_new_sms_is_sent_automatically_when_enabled_w))
+            .setMessage(getString(SyncConfig.EMAIL.equals(new SyncConfig(this).mode())
+                ? R.string.automatic_forwarding_new_sms_is_sent_automatically_when_enabled_w : R.string.database_usage))
             .setPositiveButton(getString(R.string.got_it), null).show();
     }
     private void toggle() {
@@ -430,16 +444,21 @@ public final class MainActivity extends Activity {
         worker.execute(() -> {
             try (SmsStore store = new SmsStore(this)) {
                 if (DeliveryLock.LOCK.tryLock()) { try { store.recoverInFlightEmails(); } finally { DeliveryLock.LOCK.unlock(); } }
-                SyncConfig c = new SyncConfig(this); long pending = store.pendingCount(), eligible = store.eligibleCount(c.mode(), c.target()), unfinishedMail = store.uncertainCount(), review = store.reviewCount();
-                long sending = Math.max(0, unfinishedMail - review), other = Math.max(0, pending - eligible - unfinishedMail);
+                SyncConfig c = new SyncConfig(this);
+                String activeMode = c.mode(), activeTarget = c.target();
+                boolean mail = SyncConfig.EMAIL.equals(activeMode);
+                long eligible = store.eligibleCount(activeMode, activeTarget);
+                long unfinishedMail = mail ? store.uncertainCount(activeTarget) : 0, review = mail ? store.reviewCount(activeTarget) : 0;
+                long sending = Math.max(0, unfinishedMail - review);
                 runOnUiThread(() -> {
                     if (isDestroyed() || wizard || editing || profilesPage || aboutPage) return;
+                    SyncConfig current = new SyncConfig(this);
+                    if (!activeMode.equals(current.mode()) || !activeTarget.equals(current.target())) return;
                     homeState.setText(!allowed() ? getString(R.string.sms_permission_needed) : !c.enabled() ? getString(R.string.paused) : getString(R.string.enabled));
                     homeDetails.setText(!allowed() ? getString(R.string.go_to_more_actions_open_app_permissions_to_allow_sms_access) : review > 0 ? getString(R.string.some_emails_have_an_uncertain_delivery_status_go_to_more_actions) : !c.enabled() ? getString(R.string.new_sms_stays_on_this_phone_until_forwarding_is_enabled) : c.status());
                     homeCounts.setText(quantity(R.plurals.queue_pending, eligible)
                         + (sending > 0 ? "\n" + quantity(R.plurals.queue_sending, sending) : "")
-                        + (review > 0 ? "\n" + quantity(R.plurals.queue_review, review) : "")
-                        + (other > 0 ? "\n" + quantity(R.plurals.queue_other, other) : ""));
+                        + (review > 0 ? "\n" + quantity(R.plurals.queue_review, review) : ""));
                 });
             }
         });
@@ -452,10 +471,15 @@ public final class MainActivity extends Activity {
         });
     }
     private void resolveUncertain() {
+        SyncConfig active = new SyncConfig(this);
+        if (!SyncConfig.EMAIL.equals(active.mode())) return;
+        String target = active.target();
         worker.execute(() -> {
-            java.util.List<SmsStore.Message> rows; try (SmsStore store = new SmsStore(this)) { rows = store.uncertain(); }
+            java.util.List<SmsStore.Message> rows; try (SmsStore store = new SmsStore(this)) { rows = store.uncertain(target); }
             runOnUiThread(() -> {
                 if (isDestroyed() || wizard || editing || profilesPage || aboutPage) return;
+                SyncConfig current = new SyncConfig(this);
+                if (!SyncConfig.EMAIL.equals(current.mode()) || !target.equals(current.target())) return;
                 if (rows.isEmpty()) { say(getString(R.string.no_emails_need_checking_normal_forwarding_needs_no_manual_action)); return; }
                 SmsStore.Message row = rows.get(0);
                 dialog().setTitle(getString(R.string.did_this_email_arrive))

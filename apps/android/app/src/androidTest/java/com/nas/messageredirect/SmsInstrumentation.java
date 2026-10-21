@@ -34,6 +34,7 @@ public final class SmsInstrumentation extends Instrumentation {
             try (SmsStore store = new SmsStore(getTargetContext(), "test-messages.db")) { check(store.count() == 2, "persistent across reopen"); }
             testUploader();
             testEmailQueueAndSecrets();
+            testProfileScopedReview();
             testSmtpTlsRequiredOnDevice();
             testUpgrade();
             testReceivingIdentity();
@@ -181,6 +182,27 @@ public final class SmsInstrumentation extends Instrumentation {
             check(store.pendingCount() == 0, "confirmed mail done");
             check(store.recent().get(0).mode.equals(SyncConfig.EMAIL), "completed route preserved");
         } finally { config.prefs.edit().clear().commit(); getTargetContext().deleteDatabase("test-email.db"); }
+    }
+    private void testProfileScopedReview() {
+        String database = "test-profile-review.db";
+        getTargetContext().deleteDatabase(database);
+        try (SmsStore store = new SmsStore(getTargetContext(), database)) {
+            String first = "first@example.invalid", second = "quote'@example.invalid";
+            store.save("sender", "first fixture", 1, "test");
+            store.save("sender", "second fixture", 2, "test");
+            java.util.List<SmsStore.Message> rows = store.pending();
+            String firstId = rows.get(0).id, secondId = rows.get(1).id;
+            store.bindDelivery(firstId, SyncConfig.EMAIL, first); store.emailSending(firstId); store.emailUncertain(firstId);
+            store.bindDelivery(secondId, SyncConfig.EMAIL, second); store.emailSending(secondId);
+            check(store.uncertainCount(first) == 1 && store.reviewCount(first) == 1, "current email review counts only its recipient");
+            check(store.uncertainCount(second) == 1 && store.reviewCount(second) == 0, "other recipient still sending is separate");
+            check(store.uncertain(first).size() == 1 && store.uncertain(first).get(0).id.equals(firstId), "review list scoped to current recipient");
+            check(store.uncertain(second).isEmpty(), "sending email is not shown for review");
+            store.emailUncertain(secondId);
+            check(store.uncertain(second).size() == 1 && store.uncertain(second).get(0).id.equals(secondId), "quoted recipient safely matched");
+            check(store.reviewCount("absent@example.invalid") == 0 && store.uncertain("absent@example.invalid").isEmpty(), "unrelated profile has no email actions to resolve");
+            check(store.pendingCount() == 2 && store.uncertainCount() == 2, "filtering preserves every other profile's queued messages");
+        } finally { getTargetContext().deleteDatabase(database); }
     }
     private void testUpgrade() {
         String name = "test-upgrade.db"; getTargetContext().deleteDatabase(name);
@@ -520,6 +542,13 @@ public final class SmsInstrumentation extends Instrumentation {
                 check(view(root, "赛博斑鸠 · 自建数据库", true) != null, "saved database selection changes the active mascot");
                 view(root, "返回首页", false).performClick(); renderView(app, root, "mascot-database-home.png");
                 view(root, "更多操作", false).performClick(); CrayonDialog dbMenu = currentDialog(app);
+                check(view(dbMenu.getWindow().getDecorView(), app.getString(R.string.check_email_delivery), false) == null, "database menu hides email-only action");
+                check(view(dbMenu.getWindow().getDecorView(), app.getString(R.string.retry_unsent_sms), false) != null, "database menu retains relevant retry action");
+                view(dbMenu.getWindow().getDecorView(), app.getString(R.string.usage_guide), false).performClick();
+                CrayonDialog dbHelp = currentDialog(app);
+                check(view(dbHelp.getWindow().getDecorView(), app.getString(R.string.database_usage), false) != null, "database menu dispatches archive-specific usage after removing email action");
+                view(dbHelp.getWindow().getDecorView(), app.getString(R.string.got_it), false).performClick();
+                view(root, "更多操作", false).performClick(); dbMenu = currentDialog(app);
                 check(view(dbMenu.getWindow().getDecorView(), "赛博斑鸠 · 自建数据库", true) != null, "database menu shares the selected costume");
                 captureDialog(app, dbMenu, "mascot-database-menu.png"); checkAbout(app, dbMenu, true); view(root, "管理转发配置", false).performClick();
                 ProfileStore.Profile mail = profiles.find(mailId);
@@ -528,6 +557,7 @@ public final class SmsInstrumentation extends Instrumentation {
                 check(view(root, "斑鸠 · 邮件转发", true) != null, "switching back to email removes the cyber costume");
                 view(root, "返回首页", false).performClick(); renderView(app, root, "mascot-email-home.png");
                 view(root, "更多操作", false).performClick(); CrayonDialog mailMenu = currentDialog(app);
+                check(view(mailMenu.getWindow().getDecorView(), app.getString(R.string.check_email_delivery), false) != null, "switching to email restores email-only action immediately");
                 check(view(mailMenu.getWindow().getDecorView(), "斑鸠 · 邮件转发", true) != null, "email menu restores the default pigeon");
                 captureDialog(app, mailMenu, "mascot-email-menu.png"); checkAbout(app, mailMenu, false); view(root, "管理转发配置", false).performClick();
                 android.view.View mailCard = view(root, "选择配置：" + mail.name(), true);

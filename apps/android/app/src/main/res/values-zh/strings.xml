@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="database_usage">自动归档\n开启后，新短信会上传到当前配置的归档服务。暂停时短信保留在手机，重新开启后继续上传。不会自动导入历史收件箱。\n\n入库失败怎么办\n服务确认保存成功后才标记完成。网络或服务异常会稍后自动重试，也可以点“重试尚未发送的短信”。持续失败时，请检查服务地址和访问令牌。\n\n切换配置\n点卡片切换当前配置。已经绑定服务的短信保留原目标，切回对应配置后才能继续上传。\n\n后台运行\n若上传延迟，可在系统电池设置中允许本应用后台运行。强行停止后，需要重新打开。</string>
     <string name="language_title">应用语言</string>
     <string name="language_system">跟随系统</string>
     <string name="setup_wizard">"设置向导"</string>
@@ -120,7 +121,7 @@
     <string name="version">"版本号"</string>
     <string name="build">"构建号  "</string>
     <string name="version_information_is_unavailable">"暂时无法读取版本信息"</string>
-    <string name="automatic_forwarding_new_sms_is_sent_automatically_when_enabled_w">"自动转发\n开启后自动发送新短信；暂停时，新短信会留在手机，重新开启后继续发送。不会自动导入历史收件箱。\n\n发送失败怎么办\n一般网络错误会稍后自动重试，也可以点“重试尚未发送的短信”。\n\n检查邮件是否收到\n发送时连接中断，App 可能无法判断邮件是否寄出。为避免重复，这类邮件不自动重发。请先检查收件箱和垃圾箱，再选择“已收到”或“没收到，重发”。\n\n切换配置\n点卡片切换，点“编辑配置”修改内容。已经开始发送的短信保留原收件邮箱或服务地址，切回对应配置后才能继续发送。\n\n后台运行\n若转发延迟，可在系统电池设置中允许本应用后台运行。强行停止应用后，需要重新打开。"</string>
+    <string name="automatic_forwarding_new_sms_is_sent_automatically_when_enabled_w">"自动转发\n开启后自动发送新短信；暂停时，新短信会留在手机，重新开启后继续发送。不会自动导入历史收件箱。\n\n发送失败怎么办\n一般网络错误会稍后自动重试，也可以点“重试尚未发送的短信”。\n\n检查邮件是否收到\n发送时连接中断，App 可能无法判断邮件是否寄出。为避免重复，这类邮件不自动重发。请先检查收件箱和垃圾箱，再选择“已收到”或“没收到，重发”。\n\n切换配置\n点卡片切换，点“编辑配置”修改内容。已经开始发送的邮件保留原收件邮箱，切回对应配置后才能继续发送。\n\n后台运行\n若转发延迟，可在系统电池设置中允许本应用后台运行。强行停止应用后，需要重新打开。"</string>
     <string name="got_it">"知道了"</string>
     <string name="grant_sms_permission_in_system_settings_before_enabling_forwardin">"请先在系统设置中授予短信权限，再开启自动转发"</string>
     <string name="sms_permission_needed">"需要短信权限"</string>

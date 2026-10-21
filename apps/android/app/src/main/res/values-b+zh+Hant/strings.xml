@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="database_usage">自動封存\n開啟後，新簡訊會上傳到目前設定的封存服務。暫停時簡訊保留在手機，重新開啟後繼續上傳。不會自動匯入歷史收件匣。\n\n寫入失敗怎麼辦\n服務確認儲存成功後才標記完成。網路或服務異常會稍後自動重試，也可以點選「重試尚未傳送的簡訊」。持續失敗時，請檢查服務網址和存取權杖。\n\n切換設定\n點選卡片切換目前設定。已經綁定服務的簡訊保留原目標，切回對應設定後才能繼續上傳。\n\n背景執行\n若上傳延遲，可在系統電池設定中允許本應用程式在背景執行。強制停止後，需要重新開啟。</string>
     <string name="language_title">應用程式語言</string>
     <string name="language_system">跟隨系統</string>
     <string name="setup_wizard">"設置嚮導"</string>
@@ -120,7 +121,7 @@
     <string name="version">"版本號"</string>
     <string name="build">"構建號  "</string>
     <string name="version_information_is_unavailable">"暫時無法讀取版本信息"</string>
-    <string name="automatic_forwarding_new_sms_is_sent_automatically_when_enabled_w">"自動轉發\n開啓後自動發送新短信；暫停時，新短信會留在手機，重新開啓後繼續發送。不會自動導入歷史收件箱。\n\n發送失敗怎麼辦\n一般網絡錯誤會稍後自動重試，也可以點“重試尚未發送的短信”。\n\n檢查郵件是否收到\n發送時連接中斷，App 可能無法判斷郵件是否寄出。爲避免重複，這類郵件不自動重發。請先檢查收件箱和垃圾箱，再選擇“已收到”或“沒收到，重發”。\n\n切換配置\n點卡片切換，點“編輯配置”修改內容。已經開始發送的短信保留原收件郵箱或服務地址，切回對應配置後才能繼續發送。\n\n後臺運行\n若轉發延遲，可在系統電池設置中允許本應用後臺運行。強行停止應用後，需要重新打開。"</string>
+    <string name="automatic_forwarding_new_sms_is_sent_automatically_when_enabled_w">"自動轉發\n開啓後自動發送新短信；暫停時，新短信會留在手機，重新開啓後繼續發送。不會自動導入歷史收件箱。\n\n發送失敗怎麼辦\n一般網絡錯誤會稍後自動重試，也可以點“重試尚未發送的短信”。\n\n檢查郵件是否收到\n發送時連接中斷，App 可能無法判斷郵件是否寄出。爲避免重複，這類郵件不自動重發。請先檢查收件箱和垃圾箱，再選擇“已收到”或“沒收到，重發”。\n\n切換配置\n點卡片切換，點“編輯配置”修改內容。已經開始發送的郵件保留原收件郵箱，切回對應配置後才能繼續發送。\n\n後臺運行\n若轉發延遲，可在系統電池設置中允許本應用後臺運行。強行停止應用後，需要重新打開。"</string>
     <string name="got_it">"知道了"</string>
     <string name="grant_sms_permission_in_system_settings_before_enabling_forwardin">"請先在系統設置中授予短信權限，再開啓自動轉發"</string>
     <string name="sms_permission_needed">"需要短信權限"</string>

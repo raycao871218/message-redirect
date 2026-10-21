@@ -63,6 +63,9 @@ final class SmsStore extends SQLiteOpenHelper {
     }
     List<Message> recent() { return query(null, null, "sent_at DESC, _id DESC", "100"); }
     List<Message> uncertain() { return query("uploaded_at IS NULL AND delivery_state='uncertain'", null, "_id ASC", null); }
+    List<Message> uncertain(String target) {
+        return query("uploaded_at IS NULL AND delivery_mode='email' AND delivery_target=? AND delivery_state='uncertain'", new String[]{target}, "_id ASC", null);
+    }
     List<Message> pending() { return query("uploaded_at IS NULL AND delivery_state='pending'", null, "_id ASC", "5"); }
     private String eligible() { return "uploaded_at IS NULL AND delivery_state='pending' AND (delivery_mode IS NULL OR (delivery_mode=? AND delivery_target=?))"; }
     List<Message> pending(String mode, String target) { return query(eligible(), new String[]{mode, target}, "_id ASC", "5"); }
@@ -84,6 +87,13 @@ final class SmsStore extends SQLiteOpenHelper {
     void recoverInFlightEmails() { getWritableDatabase().execSQL("UPDATE messages SET delivery_state='uncertain' WHERE uploaded_at IS NULL AND delivery_state='sending'"); }
     long uncertainCount() { return countWhere(" WHERE uploaded_at IS NULL AND delivery_state IN ('sending','uncertain')"); }
     long reviewCount() { return countWhere(" WHERE uploaded_at IS NULL AND delivery_state='uncertain'"); }
+    long uncertainCount(String target) { return emailCount(target, "delivery_state IN ('sending','uncertain')"); }
+    long reviewCount(String target) { return emailCount(target, "delivery_state='uncertain'"); }
+    private long emailCount(String target, String state) {
+        try (Cursor c = getReadableDatabase().rawQuery("SELECT COUNT(*) FROM messages WHERE uploaded_at IS NULL AND delivery_mode='email' AND delivery_target=? AND " + state, new String[]{target})) {
+            c.moveToFirst(); return c.getLong(0);
+        }
+    }
     void markUploaded(List<String> ids) {
         SQLiteDatabase db = getWritableDatabase(); db.beginTransaction();
         try {
