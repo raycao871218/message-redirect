@@ -1,7 +1,7 @@
 # GuGuGu (咕咕咕) · Message Redirect
 
-[![切换到简体中文](https://img.shields.io/badge/简体中文-切换语言-0969da?style=for-the-badge)](README.md)
-[![English · Current language](https://img.shields.io/badge/English-Current_language-2ea44f?style=for-the-badge)](README.en.md)
+[![简体中文](https://img.shields.io/badge/简体中文-0969da?style=for-the-badge)](README.md)
+[![English](https://img.shields.io/badge/English-0969da?style=for-the-badge)](README.en.md)
 
 When you have several phones, taking all of them with you is not always practical—and verification codes often arrive on the one you left at home. GuGuGu is a little messenger for that stay-at-home Android phone. It forwards SMS messages and verification codes to an email inbox you can check on the go, or stores them in your own archive service.
 
