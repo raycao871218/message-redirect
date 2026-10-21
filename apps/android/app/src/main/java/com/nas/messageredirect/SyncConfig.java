@@ -10,7 +10,7 @@ final class SyncConfig {
     final SharedPreferences prefs;
     final Context context;
     SyncConfig(Context context) { this(context, "sync"); }
-    SyncConfig(Context context, String name) { this.context = context; prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE); }
+    SyncConfig(Context context, String name) { this.context = AppLanguage.wrap(context); prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE); }
     String url() { return prefs.getString("url", ""); }
     String token() { return prefs.getString("token", ""); }
     String mode() { return EMAIL.equals(prefs.getString("delivery_mode", DATABASE)) ? EMAIL : DATABASE; }

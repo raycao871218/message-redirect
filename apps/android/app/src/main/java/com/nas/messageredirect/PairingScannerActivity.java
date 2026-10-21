@@ -20,6 +20,7 @@ import java.util.Collections;
 
 /** Local-only QR camera; scanning is opt-in and the camera stops whenever this screen leaves. */
 public final class PairingScannerActivity extends Activity {
+    @Override protected void attachBaseContext(android.content.Context base) { super.attachBaseContext(AppLanguage.wrap(base)); }
     private DecoratedBarcodeView scanner;
     private TextView hint;
     @Override public void onCreate(Bundle saved) {

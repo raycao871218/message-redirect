@@ -8,6 +8,7 @@ public final class SmsInstrumentation extends Instrumentation {
     private Bundle arguments;
     @Override public void onCreate(Bundle args) { arguments = args; start(); }
     @Override public void onStart() {
+        if (arguments != null && "true".equals(arguments.getString("language_flow"))) { testLanguagePicker(); return; }
         if (arguments != null && "true".equals(arguments.getString("localization_flow"))) {
             Bundle result = new Bundle();
             try { LocaleChecks.run(getTargetContext()); result.putString("stream", "PASS: en/zh/ja, regional locales, fallback, validation, persisted statuses, and localized email templates"); finish(-1, result); }
@@ -365,6 +366,48 @@ public final class SmsInstrumentation extends Instrumentation {
             result.putString("stream", "PASS: rendered native home, cards and editor from paused preview fixtures"); finish(-1, result);
         } catch (Throwable error) { result.putString("stream", "FAIL: " + error); finish(0, result); }
         finally { if (activity != null) { final android.app.Activity app = activity; runOnMainSync(app::finish); } }
+    }
+    private void testLanguagePicker() {
+        Bundle result = new Bundle(); android.app.Activity activity = null;
+        String original = AppLanguage.selected(getTargetContext());
+        try {
+            check(getTargetContext().getPackageName().endsWith(".preview"), "language picker test requires isolated preview");
+            SyncConfig config = new SyncConfig(getTargetContext());
+            check(config.setupComplete() && !config.enabled(), "language test requires paused fixtures");
+            java.util.Map<String, ?> saved = new java.util.HashMap<>(config.prefs.getAll());
+            android.content.Intent intent = new android.content.Intent().setClassName(getTargetContext().getPackageName(), MainActivity.class.getName()).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            for (String tag : new String[]{"en", "ja", "zh-CN", ""}) {
+                activity = startActivitySync(intent); waitForIdleSync();
+                final android.app.Activity app = activity;
+                int label = tag.equals("en") ? R.string.language_english : tag.equals("ja") ? R.string.language_japanese : tag.isEmpty() ? R.string.language_system : R.string.language_chinese;
+                runOnMainSync(() -> {
+                    view(app.getWindow().getDecorView(), app.getString(R.string.language_button), false).performClick();
+                    CrayonDialog menu = currentDialog(app);
+                    android.view.View option = view(menu.getWindow().getDecorView(), app.getString(label), false);
+                    if (option == null) option = view(menu.getWindow().getDecorView(), "✓ " + app.getString(label), false);
+                    check(option != null, "language choice is visible"); option.performClick();
+                });
+                waitForIdleSync();
+                check(AppLanguage.selected(getTargetContext()).equals(tag), "language choice persisted: " + tag);
+                activity = startActivitySync(intent); waitForIdleSync();
+                final android.app.Activity localized = activity;
+                runOnMainSync(() -> {
+                    check(localized.getString(R.string.next).equals(tag.equals("en") ? "Next" : tag.equals("ja") ? "次へ" : "下一步"), "selected language renders after recreation");
+                    check(view(localized.getWindow().getDecorView(), localized.getString(R.string.manage_profiles), false) != null, "home renders in selected language");
+                    if (tag.equals("ja")) {
+                        view(localized.getWindow().getDecorView(), localized.getString(R.string.language_button), false).performClick();
+                        captureDialog(localized, currentDialog(localized), "language-picker.png");
+                    }
+                    localized.finish();
+                });
+                check(saved.equals(config.prefs.getAll()), "language choice preserves forwarding configuration");
+                runOnMainSync(app::finish);
+            }
+            result.putString("stream", "PASS: visible language button, English/Japanese/Chinese/system selection, recreation, persistence, and forwarding settings unchanged"); finish(-1, result);
+        } catch (Throwable error) { result.putString("stream", "FAIL: " + error); finish(0, result); }
+        finally {
+            if (activity != null) { final android.app.Activity app = activity; runOnMainSync(() -> { AppLanguage.select(app, original); app.finish(); }); }
+        }
     }
     private void renderView(android.app.Activity activity, android.view.View root, String filename) {
         android.util.DisplayMetrics display = new android.util.DisplayMetrics(); activity.getWindowManager().getDefaultDisplay().getMetrics(display);

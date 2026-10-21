@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 
 /** Status, saved configuration cards and first-run setup; SMS stay in the private queue. */
 public final class MainActivity extends Activity {
+    @Override protected void attachBaseContext(Context base) { super.attachBaseContext(AppLanguage.wrap(base)); }
     private static final int INK = 0xff3b3a49, MUTED = 0xff706b75, BLUE = 0xff4d669d, BG = 0xfffcf6e8;
     private static final int PAPER = 0xfffffcf4, EDGE = 0xff8a8a9a, WAX_BLUE = 0xffbacceb;
     private static final int EMAIL_INPUT = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
@@ -136,6 +137,7 @@ public final class MainActivity extends Activity {
         button(root, step == 3 ? getString(R.string.finish_setup) : getString(R.string.next), true, view -> next());
         if (step > 0) button(root, getString(R.string.back), false, view -> { rememberInputs(); step--; showStep(); });
         if (new SyncConfig(this).setupComplete() || new SyncConfig(this).enabled()) button(root, getString(R.string.cancel_and_return_home), false, view -> { password = ""; showHome(); });
+        if (step == 0) button(root, getString(R.string.language_button), false, view -> showLanguages());
     }
     private void showSettings() {
         wizard = false; editing = false; phoneEditing = false; profilesPage = true; password = "";
@@ -372,7 +374,14 @@ public final class MainActivity extends Activity {
             .setItems(new String[]{getString(R.string.retry_unsent_sms), getString(R.string.check_email_delivery), getString(R.string.usage_guide), getString(R.string.open_app_permissions), getString(R.string.about_gugugu)}, (dialog, which) -> {
                 if (which == 0) uploadNow(); else if (which == 1) resolveUncertain(); else if (which == 2) showUsage(); else if (which == 3) openPermissions(); else showAbout();
             }).setNegativeButton(getString(R.string.close), null).show());
+        button(root, getString(R.string.language_button), false, view -> showLanguages());
         root.addView(notice); refresh();
+    }
+    private void showLanguages() {
+        String[] names = {getString(R.string.language_system), getString(R.string.language_chinese), getString(R.string.language_english), getString(R.string.language_japanese)};
+        names[AppLanguage.selectedIndex(this)] = "✓ " + names[AppLanguage.selectedIndex(this)];
+        dialog().setTitle(getString(R.string.language_title)).setItems(names, (dialog, which) -> AppLanguage.select(this, AppLanguage.TAGS[which]))
+            .setNegativeButton(getString(R.string.cancel), null).show();
     }
     private void showAbout() {
         wizard = false; editing = false; profilesPage = false; phoneEditing = false; password = "";

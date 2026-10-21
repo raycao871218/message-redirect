@@ -6,8 +6,8 @@ android {
         applicationId 'com.nas.messageredirect'
         minSdk 23
         targetSdk 34
-        versionCode 19
-        versionName '0.9.0'
+        versionCode 20
+        versionName '0.9.1'
         testInstrumentationRunner 'com.nas.messageredirect.SmsInstrumentation'
     }
     compileOptions { coreLibraryDesugaringEnabled true; sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }

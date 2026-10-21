@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="language_title">應用程式語言</string>
+    <string name="language_system">跟隨系統</string>
     <string name="setup_wizard">"設置嚮導"</string>
     <string name="cyber_messenger">"賽博信使"</string>
     <string name="your_little_messenger">"你的小信使"</string>

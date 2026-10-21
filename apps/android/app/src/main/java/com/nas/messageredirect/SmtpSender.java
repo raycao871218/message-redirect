@@ -17,6 +17,7 @@ final class SmtpSender {
         return message(null, profile, deviceId, sms);
     }
     static MimeMessage message(Context context, SmtpProfile profile, String deviceId, SmsStore.Message sms) throws Exception {
+        if (context != null) context = AppLanguage.wrap(context);
         Session session = Session.getInstance(profile.properties()); session.setDebug(false);
         // Reuse the same Message-ID for retries, though SMTP does not guarantee recipient-side deduplication.
         String identity = UUID.nameUUIDFromBytes((deviceId + ":" + sms.id).getBytes(StandardCharsets.UTF_8)).toString();

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="language_button" translatable="false">语言 / Language / 言語</string>
+    <string name="language_chinese" translatable="false">简体中文</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_japanese" translatable="false">日本語</string>
+    <string name="language_title">App language</string>
+    <string name="language_system">Follow system</string>
     <string name="setup_wizard">"Setup wizard"</string>
     <string name="cyber_messenger">"Cyber messenger"</string>
     <string name="your_little_messenger">"Your little messenger"</string>
