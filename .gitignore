@@ -36,3 +36,4 @@ server/wheels/
 
 # Personal debug-build network policy (real LAN hosts stay local).
 /apps/android/app/src/debug/res/xml/network_security_config.xml
+/apps/android/app/src/localRelease/res/xml/network_security_config.xml

@@ -15,6 +15,13 @@ android {
     bundle { language { enableSplit = false } }
     // Isolate interactive setup checks from the user's installed app and private configuration.
     buildTypes { debug { if (project.hasProperty('uiPreview')) applicationIdSuffix '.preview' } }
+    if (providers.gradleProperty('localNasRelease').isPresent()) {
+        def localResources = file('src/localRelease/res')
+        if (!new File(localResources, 'xml/network_security_config.xml').isFile()) {
+            throw new GradleException('Create app/src/localRelease/res/xml/network_security_config.xml before using -PlocalNasRelease.')
+        }
+        sourceSets.release.res.srcDir(localResources)
+    }
     // Keep personal builds signed with the same ignored local key across build machines.
     def personalDebugKey = rootProject.file('../../.secrets/android-debug.keystore')
     if (personalDebugKey.exists()) {

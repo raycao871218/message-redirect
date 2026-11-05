@@ -14,6 +14,8 @@ Windows 使用 `gradlew.bat`。依赖 JDK 17、Android SDK 34 和 Build Tools 34
 
 个人稳定调试密钥仍从仓库根目录 `.secrets/android-debug.keystore` 读取，覆盖升级需保持签名。局域网 HTTP 的本地覆盖文件为 `app/src/debug/res/xml/network_security_config.xml`，已忽略。实际手机号、服务令牌和 SMTP 授权码不要写入源码。
 
+需要在个人 Release 版访问局域网 HTTP 归档服务时，把网络安全配置复制到已忽略的 `app/src/localRelease/res/xml/network_security_config.xml`，仅放行自己的 NAS 地址。已有调试版覆盖文件可直接复制。运行 `./gradlew :app:assembleRelease -PlocalNasRelease`，再用手机上已安装版本的原签名密钥签署 APK，覆盖安装后即可用原配置重试待发短信。公开发布时省略 `-PlocalNasRelease`。
+
 首页“更多操作 → 关于咕咕咕”可查看当前安装版本和构建号。
 
 数据库向导或配置编辑页提供“扫码配置”，扫描服务面板的配对二维码后先显示服务名称、地址；确认仅填入表单，保存后才生效。不会因扫码自动切换当前配置或开启转发。扫码使用本机相机和 ZXing，不依赖 Google Play 服务；拒绝相机权限可继续手动配置。
